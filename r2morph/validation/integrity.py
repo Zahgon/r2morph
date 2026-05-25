@@ -40,36 +40,7 @@ class BinaryIntegrityValidator:
 
     def _detect_format(self) -> str:
         """Detect the binary format."""
-        try:
-            with open(self.binary_path, "rb") as f:
-                magic = f.read(4)
-
-            if magic[:2] == b"MZ":
-                self._format = "pe"
-                return "pe"
-
-            if magic in (b"\x7fELF", b"\x7f\x45\x4c\x46"):
-                self._format = "elf"
-                return "elf"
-
-            if magic in (
-                b"\xfe\xed\xfa\xce",
-                b"\xce\xfa\xed\xfe",
-                b"\xfe\xed\xfa\xcf",
-                b"\xcf\xfa\xed\xfe",
-            ):
-                self._format = "macho"
-                return "macho"
-
-            if magic in (b"\xca\xfe\xba\xbe", b"\xbe\xba\xfe\xca"):
-                self._format = "fat_macho"
-                return "fat_macho"
-
-            self._format = "unknown"
-            return "unknown"
-        except Exception:
-            self._format = "unknown"
-            return "unknown"
+        pass
 
     def _get_handler(self) -> Any | None:
         """Get the platform-specific handler."""

@@ -105,17 +105,17 @@ class ABIMutationHook:
     @property
     def abi(self) -> ABISpec:
         """Get the ABI specification."""
-        return self.checker.abi
+        pass
 
     @property
     def total_violations(self) -> int:
         """Get total number of violations detected."""
-        return len(self._total_violations)
+        pass
 
     @property
     def blocked_functions(self) -> set[int]:
         """Get set of functions that were blocked from mutation."""
-        return self._blocked_functions.copy()
+        pass
 
     def snapshot_function(self, function_address: int) -> ABISnapshot:
         """
@@ -238,15 +238,7 @@ class ABIMutationHook:
         Returns:
             ABICheckResult
         """
-        mutation_regions = [(start_address, end_address)]
-
-        if function_address:
-            return self.validate_function(function_address, mutation_regions)
-
-        return ABICheckResult(
-            valid=True,
-            check_types=["region"],
-        )
+        pass
 
     def should_skip_mutation(self, function_address: int) -> bool:
         """
@@ -317,9 +309,7 @@ class ABIMutationHook:
 
     def reset(self) -> None:
         """Reset hook state for new mutation session."""
-        self._snapshots.clear()
-        self._total_violations.clear()
-        self._blocked_functions.clear()
+        pass
 
     def log_violations(self, level: str = "warning") -> None:
         """
@@ -328,10 +318,7 @@ class ABIMutationHook:
         Args:
             level: Log level (debug, info, warning, error)
         """
-        log_func = getattr(logger, level, logger.warning)
-
-        for v in self._total_violations:
-            log_func(f"ABI violation ({v.violation_type.value}) at 0x{v.location:x}: {v.description}")
+        pass
 
     def get_violations_for_function(self, function_address: int) -> list[ABIViolation]:
         """
@@ -343,7 +330,7 @@ class ABIMutationHook:
         Returns:
             List of violations for the function
         """
-        return [v for v in self._total_violations if v.location == function_address]
+        pass
 
 
 def create_abi_hook(

@@ -335,18 +335,4 @@ class SemanticValidator:
         Returns:
             Dictionary with batch validation results
         """
-        results = {}
-        total_violations = 0
-
-        for addr in function_addresses:
-            original_invs = invariants_map.get(addr, [])
-            result = self.validate_mutation(addr, original_invs)
-            results[addr] = result
-            total_violations += result["violation_count"]
-
-        return {
-            "functions_validated": len(function_addresses),
-            "total_violations": total_violations,
-            "all_valid": total_violations == 0,
-            "results": results,
-        }
+        pass

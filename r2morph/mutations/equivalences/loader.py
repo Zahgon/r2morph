@@ -113,11 +113,4 @@ def get_available_architectures() -> list[str]:
     Returns:
         List of architecture names that have rule files.
     """
-    rules_dir = Path(__file__).parent
-    architectures = []
-
-    for rules_file in rules_dir.glob("*_rules.yaml"):
-        arch_name = rules_file.stem.replace("_rules", "")
-        architectures.append(arch_name)
-
-    return sorted(architectures)
+    pass

@@ -103,13 +103,7 @@ class BlockReorderingPass(MutationPass):
         Returns:
             Number of additional jumps needed
         """
-        jumps_needed = 0
-
-        for i, block_idx in enumerate(new_order[:-1]):
-            if new_order[i + 1] != block_idx + 1:
-                jumps_needed += 1
-
-        return jumps_needed
+        pass
 
     def apply(self, binary: Any) -> dict[str, Any]:
         """

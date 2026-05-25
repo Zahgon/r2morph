@@ -164,13 +164,7 @@ class EntropyAnalyzer:
         Returns:
             Tuple of (original_entropy, morphed_entropy, delta)
         """
-        orig_entropy = self._calculate_file_entropy(original_path)
-        morph_entropy = self._calculate_file_entropy(morphed_path)
-        delta = morph_entropy - orig_entropy
-
-        logger.info(f"Entropy comparison: {orig_entropy:.4f} -> {morph_entropy:.4f} (delta: {delta:+.4f})")
-
-        return orig_entropy, morph_entropy, delta
+        pass
 
     def visualize_entropy(self, path: Path, block_size: int = 256) -> list[float]:
         """
@@ -183,15 +177,4 @@ class EntropyAnalyzer:
         Returns:
             List of entropy values per block
         """
-        with open(path, "rb") as f:
-            data = f.read()
-
-        entropies = []
-
-        for i in range(0, len(data), block_size):
-            block = data[i : i + block_size]
-            if block:
-                entropy = self._calculate_entropy(block)
-                entropies.append(entropy)
-
-        return entropies
+        pass

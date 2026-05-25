@@ -73,13 +73,7 @@ class OutlinedChunk:
 
     def to_asm(self) -> str:
         """Convert chunk to assembly string."""
-        lines = [f"chunk_{self.chunk_id:04x}:"]
-        for insn in self.instructions:
-            disasm = insn.get("disasm", insn.get("opcode", ""))
-            lines.append(f"    {disasm}")
-        if self.jump_target:
-            lines.append(f"    jmp chunk_{self.jump_target:04x}")
-        return "\n".join(lines)
+        pass
 
 
 @dataclass
@@ -93,25 +87,11 @@ class OutlinedFunction:
 
     def add_chunk(self, chunk: OutlinedChunk) -> None:
         """Add a chunk to the function."""
-        self.chunks.append(chunk)
+        pass
 
     def get_chunk_order(self) -> list[int]:
         """Get chunk execution order for reconstruction."""
-        order = []
-        visited: set[int] = set()
-        current: int | None = self.entry_chunk
-
-        while current is not None and current not in visited:
-            visited.add(current)
-            order.append(current)
-
-            chunk = next((c for c in self.chunks if c.chunk_id == current), None)
-            if chunk:
-                current = chunk.jump_target if chunk.jump_target else chunk.fallthrough_target
-            else:
-                break
-
-        return order
+        pass
 
 
 class FunctionOutliningPass(MutationPass):
@@ -254,28 +234,7 @@ class FunctionOutliningPass(MutationPass):
         Returns:
             Tuple of (assembly code, chunk_id to offset mapping)
         """
-        asm_lines = [f"; Outlined function chunks ({len(chunks)} total)", ""]
-
-        if interleave:
-            chunk_order = list(enumerate(chunks))
-            random.shuffle(chunk_order)
-        else:
-            chunk_order = list(enumerate(chunks))
-
-        chunk_offsets: dict[int, int] = {}
-
-        for idx, (original_idx, chunk) in enumerate(chunk_order):
-            for insn in chunk.instructions:
-                disasm = insn.get("disasm", insn.get("opcode", ""))
-                if insn.get("type") == "jmp" and insn.get("jump"):
-                    target = insn.get("jump")
-                    asm_lines.append(f"    jmp target_{target:04x}  ; redirected")
-                elif insn.get("type") in ("cjmp", "call"):
-                    asm_lines.append(f"    {disasm}  ; control flow")
-                else:
-                    asm_lines.append(f"    {disasm}")
-
-        return "\n".join(asm_lines), chunk_offsets
+        pass
 
     def apply(self, binary: Any) -> dict[str, Any]:
         """

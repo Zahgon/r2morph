@@ -947,81 +947,7 @@ def generate_multi_vm_handler_x64(opcode: int | VMOpcode, profile: VMProfile) ->
     Each profile can have different implementations for the same opcode,
     making cross-profiling analysis necessary.
     """
-    handler_name = f"vm_{profile.name}_handler_{opcode:02x}"
-
-    opcodes_with_regs = {
-        VMOpcode.MOV_REG_IMM: ("mov", "imm"),
-        VMOpcode.ADD_REG_IMM: ("add", "imm"),
-        VMOpcode.SUB_REG_IMM: ("sub", "imm"),
-        VMOpcode.PUSH_IMM: ("push", "imm"),
-        VMOpcode.POP_REG: ("pop", "reg"),
-    }
-
-    if opcode in [VMOpcode.NOP, VMOpcode.VM_NOP]:
-        return f"{handler_name}:\n    nop\n    jmp vm_execute_{profile.name}\n"
-
-    if opcode == VMOpcode.VM_ENTER:
-        return f"{handler_name}:\n    ; VM enter\n    jmp vm_execute_{profile.name}\n"
-
-    if opcode == VMOpcode.VM_EXIT:
-        if profile.handler_style == "stack":
-            return f"""{handler_name}:
-    pop rdx
-    pop rcx
-    pop rbx
-    pop rax
-    mov rsp, rbp
-    pop rbp
-    ret
-"""
-        else:
-            return f"""{handler_name}:
-    pop r15
-    pop r14
-    pop r13
-    pop r12
-    pop rbx
-    ret
-"""
-
-    vm_opcode = VMOpcode(opcode) if not isinstance(opcode, VMOpcode) else opcode
-    if vm_opcode in opcodes_with_regs:
-        mnemonic, op_type = opcodes_with_regs[vm_opcode]
-        if profile.obfuscate_handlers:
-            return f"""{handler_name}:
-    ; Obfuscated {mnemonic} handler
-    movzx ecx, byte [rsi]
-    inc rsi
-    movsx rax, dword [rsi]
-    add rsi, 4
-    {mnemonic} [rbx + rcx * 8], rax
-    jmp vm_execute_{profile.name}
-"""
-        else:
-            return f"""{handler_name}:
-    movzx ecx, byte [rsi]
-    inc rsi
-    movsx rax, dword [rsi]
-    add rsi, 4
-    {mnemonic} [rbx + rcx * 8], rax
-    jmp vm_execute_{profile.name}
-"""
-
-    if opcode == VMOpcode.JMP:
-        if profile.handler_style == "indirect":
-            return f"""{handler_name}:
-    movsx rax, dword [rsi]
-    add rsi, rax
-    jmp vm_execute_{profile.name}
-"""
-        else:
-            return f"""{handler_name}:
-    movsx rax, dword [rsi]
-    add rsi, rax
-    jmp vm_execute_{profile.name}
-"""
-
-    return f"{handler_name}:\n    jmp vm_execute_{profile.name}\n"
+    pass
 
 
 class MultiVMVirtualizationPass(CodeVirtualizationPass):
@@ -1050,17 +976,7 @@ class MultiVMVirtualizationPass(CodeVirtualizationPass):
 
     def _init_profiles(self) -> None:
         """Initialize VM profiles."""
-        available = {p.name: p for p in MULTI_VM_PROFILES}
-        self.active_profiles = []
-
-        for name in self.profile_names[: self.num_vms]:
-            if name in available:
-                self.active_profiles.append(available[name])
-            else:
-                self.active_profiles.append(MULTI_VM_PROFILES[0])
-
-        if not self.active_profiles:
-            self.active_profiles = [MULTI_VM_PROFILES[0]]
+        pass
 
     def _select_vm_profile(self, func_addr: int) -> VMProfile:
         """Select a VM profile for a function."""

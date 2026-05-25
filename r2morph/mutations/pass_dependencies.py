@@ -114,70 +114,7 @@ class PassDependencyRegistry:
 
     def _initialize_default_dependencies(self) -> None:
         """Initialize with known pass dependencies."""
-        self.register(
-            "control_flow_flattening",
-            "block_reordering",
-            DependencyType.REQUIRES_ABSENCE,
-            "Control flow flattening should run before block reordering",
-        )
-
-        self.register(
-            "full_control_flow_flattening",
-            "block_reordering",
-            DependencyType.REQUIRES_ABSENCE,
-            "Full CFF should run before block reordering",
-        )
-
-        self.register(
-            "block_reordering",
-            "nop_insertion",
-            DependencyType.RECOMMENDS,
-            "Block reordering works better after nop insertion",
-        )
-
-        self.register(
-            "dead_code_injection",
-            "nop_insertion",
-            DependencyType.RECOMMENDS,
-            "Dead code injection benefits from nop padding",
-        )
-
-        self.register(
-            "instruction_substitution",
-            "register_substitution",
-            DependencyType.CONFLICTS_WITH,
-            "Instruction and register substitution may conflict on same instructions",
-            optional=True,
-        )
-
-        self.register(
-            "control_flow_flattening",
-            "instruction_substitution",
-            DependencyType.REQUIRES,
-            "CFF requires substitution support for dispatcher code",
-            optional=True,
-        )
-
-        self.register(
-            "block_reordering",
-            "control_flow_flattening",
-            DependencyType.CONFLICTS_WITH,
-            "Block reordering invalidates CFF state mapping",
-        )
-
-        self.register(
-            "register_substitution",
-            "nop_insertion",
-            DependencyType.RECOMMENDS,
-            "Register substitution provides more opportunities for nop insertion",
-        )
-
-        self.register(
-            "instruction_expansion",
-            "dead_code_injection",
-            DependencyType.RECOMMENDS,
-            "Instruction expansion creates more space for dead code",
-        )
+        pass
 
     def register(
         self,
@@ -197,18 +134,7 @@ class PassDependencyRegistry:
             reason: Human-readable explanation
             optional: Whether this is an optional dependency
         """
-        self._pass_names.add(source_pass)
-        self._pass_names.add(target_pass)
-
-        dep = PassDependency(
-            source_pass=source_pass,
-            target_pass=target_pass,
-            dep_type=dep_type,
-            reason=reason,
-            optional=optional,
-        )
-        self._dependencies.append(dep)
-        logger.debug(f"Registered dependency: {dep}")
+        pass
 
     def get_dependencies(self, pass_name: str) -> list[PassDependency]:
         """
@@ -232,11 +158,7 @@ class PassDependencyRegistry:
         Returns:
             List of required dependencies
         """
-        return [
-            dep
-            for dep in self._dependencies
-            if dep.source_pass == pass_name and dep.dep_type == DependencyType.REQUIRES
-        ]
+        pass
 
     def get_conflicts(self, pass_name: str) -> list[PassDependency]:
         """
@@ -248,11 +170,7 @@ class PassDependencyRegistry:
         Returns:
             List of conflicts
         """
-        return [
-            dep
-            for dep in self._dependencies
-            if dep.source_pass == pass_name and dep.dep_type == DependencyType.CONFLICTS_WITH
-        ]
+        pass
 
     def get_recommendations(self, pass_name: str) -> list[PassDependency]:
         """
@@ -264,11 +182,7 @@ class PassDependencyRegistry:
         Returns:
             List of recommendations
         """
-        return [
-            dep
-            for dep in self._dependencies
-            if dep.source_pass == pass_name and dep.dep_type == DependencyType.RECOMMENDS
-        ]
+        pass
 
     def validate_pipeline(self, passes: list[str]) -> list[DependencyViolation]:
         """
@@ -409,12 +323,7 @@ class PassDependencyRegistry:
         Returns:
             Dictionary with dependency information
         """
-        return {
-            "pass_name": pass_name,
-            "requires": [dep.to_dict() for dep in self.get_required_dependencies(pass_name)],
-            "conflicts": [dep.to_dict() for dep in self.get_conflicts(pass_name)],
-            "recommends": [dep.to_dict() for dep in self.get_recommendations(pass_name)],
-        }
+        pass
 
     def list_all_passes(self) -> list[str]:
         """

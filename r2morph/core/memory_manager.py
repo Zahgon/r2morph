@@ -40,21 +40,21 @@ class MemoryManager:
     @property
     def mutation_count(self) -> int:
         """Get the current mutation count."""
-        return self._mutation_counter
+        pass
 
     @property
     def batch_size(self) -> int:
         """Get the configured batch size."""
-        return self._batch_size
+        pass
 
     @batch_size.setter
     def batch_size(self, value: int) -> None:
         """Set the batch size."""
-        self._batch_size = value
+        pass
 
     def reset_counter(self) -> None:
         """Reset the mutation counter to zero."""
-        self._mutation_counter = 0
+        pass
 
     def track_mutation(self, binary: "Binary") -> None:
         """
@@ -65,15 +65,7 @@ class MemoryManager:
         Args:
             binary: Binary instance to reload if needed
         """
-        if not binary._low_memory:
-            return
-
-        self._mutation_counter += 1
-        if self._mutation_counter % self._batch_size == 0:
-            logger.info(
-                f"Batch checkpoint: {self._mutation_counter} mutations applied. " f"Reloading r2 to free memory..."
-            )
-            self._reload_binary(binary)
+        pass
 
     def _reload_binary(self, binary: "Binary") -> None:
         """
@@ -85,12 +77,7 @@ class MemoryManager:
         Args:
             binary: Binary instance to reload
         """
-        logger.debug("Reloading r2 connection to free memory")
-        was_analyzed = binary._analyzed
-        binary.close()
-        binary.open()
-        # Restore analyzed state (cache is preserved separately)
-        binary._analyzed = was_analyzed
+        pass
 
     def force_reload(self, binary: "Binary") -> None:
         """
@@ -99,7 +86,7 @@ class MemoryManager:
         Args:
             binary: Binary instance to reload
         """
-        self._reload_binary(binary)
+        pass
 
 
 # Singleton instance for convenience

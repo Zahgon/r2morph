@@ -700,6 +700,4 @@ class StackStringsPass(MutationPass):
         Returns:
             Assembly code preview
         """
-        string_data = string.encode("utf-8") + b"\x00"
-        asm, _ = self._generate_stack_string_asm(string_data, arch)
-        return asm
+        pass

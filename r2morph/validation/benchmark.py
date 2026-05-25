@@ -103,7 +103,7 @@ class TestSample:
     @property
     def file_exists(self) -> bool:
         """Check if the test file exists."""
-        return Path(self.file_path).exists()
+        pass
 
     def verify_hash(self) -> bool:
         """Verify the sample's hash."""
@@ -151,74 +151,11 @@ class ValidationFramework:
 
     def _load_test_samples(self) -> None:
         """Load predefined test samples."""
-        test_samples_data: list[dict[str, Any]] = [
-            {
-                "file_path": str(self.test_data_dir / "vmprotect_sample.exe"),
-                "sample_hash": "abcd1234567890abcd1234567890abcd1234567890abcd1234567890abcd1234",
-                "expected_packer": "VMProtect",
-                "expected_vm_protection": True,
-                "expected_anti_analysis": True,
-                "expected_cfo": True,
-                "expected_mba": True,
-                "severity": TestSeverity.CRITICAL,
-                "description": "VMProtect 3.x protected binary with full virtualization",
-                "source": "research_collection",
-            },
-            {
-                "file_path": str(self.test_data_dir / "themida_sample.exe"),
-                "sample_hash": "efgh5678901234efgh5678901234efgh5678901234efgh5678901234efgh5678",
-                "expected_packer": "Themida",
-                "expected_vm_protection": True,
-                "expected_anti_analysis": True,
-                "expected_cfo": True,
-                "expected_mba": False,
-                "severity": TestSeverity.CRITICAL,
-                "description": "Themida protected binary with anti-debugging",
-                "source": "malware_zoo",
-            },
-            {
-                "file_path": str(self.test_data_dir / "upx_sample.exe"),
-                "sample_hash": "ijkl9012345678ijkl9012345678ijkl9012345678ijkl9012345678ijkl9012",
-                "expected_packer": "UPX",
-                "expected_vm_protection": False,
-                "expected_anti_analysis": False,
-                "expected_cfo": False,
-                "expected_mba": False,
-                "severity": TestSeverity.LOW,
-                "description": "Simple UPX compressed binary",
-                "source": "test_samples",
-            },
-            {
-                "file_path": str(self.test_data_dir / "custom_vm_sample.exe"),
-                "sample_hash": "mnop3456789012mnop3456789012mnop3456789012mnop3456789012mnop3456",
-                "expected_packer": "Custom",
-                "expected_vm_protection": True,
-                "expected_anti_analysis": True,
-                "expected_cfo": True,
-                "expected_mba": True,
-                "severity": TestSeverity.HIGH,
-                "description": "Custom virtualization engine with MBA obfuscation",
-                "source": "academic_research",
-            },
-            {
-                "file_path": str(self.test_data_dir / "clean_sample.exe"),
-                "sample_hash": "qrst7890123456qrst7890123456qrst7890123456qrst7890123456qrst7890",
-                "expected_packer": None,
-                "expected_vm_protection": False,
-                "expected_anti_analysis": False,
-                "expected_cfo": False,
-                "expected_mba": False,
-                "severity": TestSeverity.LOW,
-                "description": "Clean unobfuscated binary",
-                "source": "control_group",
-            },
-        ]
-
-        self.test_samples = [TestSample(**data) for data in test_samples_data]
+        pass
 
     def add_test_sample(self, sample: TestSample) -> None:
         """Add a new test sample."""
-        self.test_samples.append(sample)
+        pass
 
     def _measure_performance(self, func: Any, *args: Any, **kwargs: Any) -> tuple[PerformanceMetrics, Any]:
         """
@@ -389,40 +326,6 @@ class ValidationFramework:
         from r2morph.devirtualization import CFOSimplifier, IterativeSimplifier
         from r2morph.devirtualization.iterative_simplifier import SimplificationStrategy
 
-        def run_devirtualization() -> dict[str, Any]:
-            with Binary(sample.file_path) as bin_obj:
-                bin_obj.analyze()
-
-                cfo_simplifier = CFOSimplifier(bin_obj)
-                functions = bin_obj.get_functions()[:3]
-
-                cfo_results = []
-                for func in functions:
-                    func_addr = func.get("offset", 0)
-                    result = cfo_simplifier.simplify_control_flow(func_addr)
-                    if result.success:
-                        cfo_results.append(
-                            {
-                                "function": func_addr,
-                                "complexity_reduction": result.original_complexity - result.simplified_complexity,
-                                "patterns_detected": len(result.patterns_detected),
-                            }
-                        )
-
-                iterative_simplifier = IterativeSimplifier(bin_obj)
-                iter_result = iterative_simplifier.simplify(
-                    strategy=SimplificationStrategy.ADAPTIVE, max_iterations=3, timeout=30
-                )
-
-                return {
-                    "cfo_functions_simplified": len(cfo_results),
-                    "cfo_total_complexity_reduction": sum(r["complexity_reduction"] for r in cfo_results),
-                    "iterative_success": iter_result.success,
-                    "iterative_iterations": iter_result.metrics.iteration if iter_result.success else 0,
-                    "iterative_complexity_reduction": (
-                        iter_result.metrics.complexity_reduction if iter_result.success else 0.0
-                    ),
-                }
 
         performance, analysis_result = self._measure_performance(run_devirtualization)
 
@@ -451,51 +354,6 @@ class ValidationFramework:
         from r2morph.devirtualization import CFOSimplifier, IterativeSimplifier
         from r2morph.devirtualization.iterative_simplifier import SimplificationStrategy
 
-        def run_full_pipeline() -> dict[str, Any]:
-            with Binary(sample.file_path) as bin_obj:
-                bin_obj.analyze()
-
-                detector = ObfuscationDetector()
-                detection_result = detector.analyze_binary(bin_obj)
-
-                bypass_framework = AntiAnalysisBypass()
-                detected_techniques = bypass_framework.detect_anti_analysis_techniques(bin_obj)
-                bypass_applied = len(detected_techniques) > 0
-
-                devirt_performed = False
-                complexity_reduction = 0.0
-
-                if detection_result.vm_detected or detection_result.control_flow_flattened:
-                    cfo_simplifier = CFOSimplifier(bin_obj)
-                    functions = bin_obj.get_functions()[:2]
-
-                    for func in functions:
-                        func_addr = func.get("offset", 0)
-                        result = cfo_simplifier.simplify_control_flow(func_addr)
-                        if result.success:
-                            complexity_reduction += result.original_complexity - result.simplified_complexity
-
-                    iterative_simplifier = IterativeSimplifier(bin_obj)
-                    iter_result = iterative_simplifier.simplify(
-                        strategy=SimplificationStrategy.CONSERVATIVE, max_iterations=2, timeout=20
-                    )
-
-                    if iter_result.success:
-                        complexity_reduction += iter_result.metrics.complexity_reduction
-                        devirt_performed = True
-
-                return {
-                    "detection_confidence": detection_result.confidence_score,
-                    "packer_detected": (
-                        detection_result.packer_detected.value if detection_result.packer_detected else None
-                    ),
-                    "vm_detected": detection_result.vm_detected,
-                    "anti_analysis_bypass_applied": bypass_applied,
-                    "devirtualization_performed": devirt_performed,
-                    "total_complexity_reduction": complexity_reduction,
-                    "obfuscation_techniques_count": len(detection_result.obfuscation_techniques),
-                    "pipeline_completed": True,
-                }
 
         performance, analysis_result = self._measure_performance(run_full_pipeline)
 

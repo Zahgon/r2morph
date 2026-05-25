@@ -349,13 +349,7 @@ class ExceptionInfoReader:
         Returns:
             List of LandingPad instances
         """
-        frames = self.read_exception_frames()
-        frame = frames.get(function_address)
-
-        if not frame:
-            return []
-
-        return frame.landing_pads
+        pass
 
     def get_exception_edges_for_function(self, function_address: int) -> list[tuple[int, int, ExceptionAction]]:
         """
@@ -367,18 +361,7 @@ class ExceptionInfoReader:
         Returns:
             List of (from_address, landing_pad_address, action) tuples
         """
-        frames = self.read_exception_frames()
-        frame = frames.get(function_address)
-
-        if not frame:
-            return []
-
-        edges: list[tuple[int, int, ExceptionAction]] = []
-
-        for pad in frame.landing_pads:
-            edges.append((function_address, pad.address, pad.action))
-
-        return edges
+        pass
 
 
 class ExceptionAwareCFGBuilder:
@@ -411,28 +394,7 @@ class ExceptionAwareCFGBuilder:
         Returns:
             Dictionary with exception analysis results
         """
-        frames = self.exception_reader.read_exception_frames()
-
-        frame = frames.get(function_address)
-        if not frame:
-            return {
-                "has_exceptions": False,
-                "landing_pads": [],
-                "exception_edges": [],
-            }
-
-        return {
-            "has_exceptions": True,
-            "landing_pads": [
-                {
-                    "address": pad.address,
-                    "size": pad.size,
-                    "action": pad.action.value,
-                }
-                for pad in frame.landing_pads
-            ],
-            "exception_edges": [(frame.function_start, pad.address, pad.action.value) for pad in frame.landing_pads],
-        }
+        pass
 
     def is_protected_region(self, address: int) -> bool:
         """
@@ -444,14 +406,7 @@ class ExceptionAwareCFGBuilder:
         Returns:
             True if address is in a protected region
         """
-        frames = self.exception_reader.read_exception_frames()
-
-        for frame in frames.values():
-            if frame.function_start <= address < frame.function_end:
-                if frame.landing_pads:
-                    return True
-
-        return False
+        pass
 
     def get_landing_pad_for_address(self, address: int) -> LandingPad | None:
         """
@@ -463,14 +418,7 @@ class ExceptionAwareCFGBuilder:
         Returns:
             LandingPad instance or None if no landing pad
         """
-        frames = self.exception_reader.read_exception_frames()
-
-        for frame in frames.values():
-            if frame.function_start <= address < frame.function_end:
-                for pad in frame.landing_pads:
-                    return pad
-
-        return None
+        pass
 
     def get_exception_aware_functions(self) -> list[int]:
         """
@@ -479,5 +427,4 @@ class ExceptionAwareCFGBuilder:
         Returns:
             List of function addresses with exception handling
         """
-        frames = self.exception_reader.read_exception_frames()
-        return [addr for addr, frame in frames.items() if frame.landing_pads]
+        pass

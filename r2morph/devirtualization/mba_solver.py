@@ -98,19 +98,7 @@ class MBASolver:
 
     def _load_mba_patterns(self) -> dict[str, str]:
         """Load known MBA patterns and their simplified forms."""
-        patterns = {
-            # Linear MBA patterns
-            r"(.+)\s*\+\s*(.+)\s*-\s*(.+)\s*&\s*(.+)": r"\1 + \2",  # x + y - (x & y) = x | y
-            r"(.+)\s*\^\s*(.+)\s*\+\s*2\s*\*\s*\((.+)\s*&\s*(.+)\)": r"\1 + \2",  # x ^ y + 2*(x & y) = x + y
-            r"(.+)\s*\|\s*(.+)\s*\+\s*(.+)\s*&\s*(.+)": r"2*(\1) + 2*(\2) - (\1 + \2)",  # (x | y) + (x & y) = x + y
-            # Boolean to arithmetic conversions
-            r"(.+)\s*\&\s*(.+)\s*\|\s*\~\((.+)\s*\^\s*(.+)\)": r"\1 == \2",  # (x & y) | ~(x ^ y) = x == y
-            r"\~\((.+)\s*\^\s*(.+)\)": r"\1 == \2",  # ~(x ^ y) = x == y
-            # Common obfuscation patterns
-            r"(.+)\s*\*\s*2\s*-\s*(.+)": r"\1 + (\1 - \2)",  # x*2 - y = x + (x - y)
-            r"(.+)\s*\+\s*(.+)\s*\*\s*(.+)\s*-\s*(.+)": r"optimize_complex",  # Mark for complex optimization
-        }
-        return patterns
+        pass
 
     def analyze_mba_expression(self, expression: str) -> MBAExpression:
         """
@@ -523,14 +511,4 @@ class MBASolver:
 
     def get_solver_statistics(self) -> dict[str, Any]:
         """Get solver performance statistics."""
-        total = self.stats["expressions_analyzed"]
-
-        stats: dict[str, Any] = dict(self.stats)
-        if total > 0:
-            stats["success_rate"] = self.stats["expressions_simplified"] / total
-            stats["pattern_success_rate"] = self.stats["pattern_matches"] / total
-        else:
-            stats["success_rate"] = 0.0
-            stats["pattern_success_rate"] = 0.0
-
-        return stats
+        pass

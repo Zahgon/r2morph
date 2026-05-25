@@ -224,13 +224,12 @@ class SemanticValidationReport:
 
     def write_report(self, path: Path) -> None:
         """Write report to file."""
-        path.write_text(self.to_json())
+        pass
 
     @classmethod
     def load_report(cls, path: Path) -> "SemanticValidationReport":
         """Load report from file."""
-        data = json.loads(path.read_text())
-        return cls.from_dict(data)
+        pass
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "SemanticValidationReport":

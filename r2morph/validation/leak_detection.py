@@ -72,25 +72,19 @@ class ObjectTracker:
 
     def start_tracking(self) -> None:
         """Start tracking objects."""
-        self._tracked_objects = WeakSet()
-        self._creation_counts = {}
-        self._deletion_counts = {}
-        self._enabled = True
+        pass
 
     def stop_tracking(self) -> None:
         """Stop tracking objects."""
-        self._enabled = False
+        pass
 
     def track_object(self, obj: object) -> None:
         """Track an object."""
-        if self._enabled:
-            self._tracked_objects.add(obj)
-            type_name = type(obj).__name__
-            self._creation_counts[type_name] = self._creation_counts.get(type_name, 0) + 1
+        pass
 
     def get_tracked_count(self) -> int:
         """Get count of tracked objects."""
-        return len(self._tracked_objects)
+        pass
 
     def get_object_counts(self) -> dict[str, tuple[int, int]]:
         """
@@ -99,13 +93,7 @@ class ObjectTracker:
         Returns:
             Dict mapping type name to (created, deleted) counts
         """
-        result = {}
-        all_types = set(self._creation_counts.keys()) | set(self._deletion_counts.keys())
-        for type_name in all_types:
-            created = self._creation_counts.get(type_name, 0)
-            deleted = self._deletion_counts.get(type_name, 0)
-            result[type_name] = (created, deleted)
-        return result
+        pass
 
 
 class MemoryLeakDetector:
@@ -137,32 +125,11 @@ class MemoryLeakDetector:
 
     def _get_gc_stats(self) -> tuple[int, int, int]:
         """Get garbage collection statistics."""
-        counts = gc.get_count()
-        return counts[0], counts[1], counts[2]
+        pass
 
     def _take_snapshot(self) -> MemorySnapshot:
         """Take a memory snapshot."""
-        if tracemalloc.is_tracing():
-            current, peak = tracemalloc.get_traced_memory()
-            tracer_running = True
-        else:
-            current, peak = 0, 0
-            tracer_running = False
-
-        gc_gen0, gc_gen1, gc_gen2 = self._get_gc_stats()
-
-        import time
-
-        return MemorySnapshot(
-            timestamp=time.time(),
-            current_memory_bytes=current,
-            peak_memory_bytes=peak,
-            object_count=len(gc.get_objects()),
-            gc_gen0=gc_gen0,
-            gc_gen1=gc_gen1,
-            gc_gen2=gc_gen2,
-            tracer_running=tracer_running,
-        )
+        pass
 
     def start_monitoring(self) -> MemorySnapshot:
         """
@@ -171,14 +138,7 @@ class MemoryLeakDetector:
         Returns:
             Initial memory snapshot
         """
-        gc.collect()
-
-        if self.enable_tracing and not tracemalloc.is_tracing():
-            tracemalloc.start()
-
-        self.object_tracker.start_tracking()
-
-        return self._take_snapshot()
+        pass
 
     def stop_monitoring(self) -> MemorySnapshot:
         """
@@ -187,14 +147,7 @@ class MemoryLeakDetector:
         Returns:
             Final memory snapshot
         """
-        snapshot = self._take_snapshot()
-
-        self.object_tracker.stop_tracking()
-
-        if tracemalloc.is_tracing():
-            tracemalloc.stop()
-
-        return snapshot
+        pass
 
     def detect_leaks(
         self,
@@ -211,82 +164,7 @@ class MemoryLeakDetector:
         Returns:
             LeakDetectionResult with analysis
         """
-        if len(snapshots) < 2:
-            return LeakDetectionResult(
-                passed=True,
-                leaks_detected=0,
-                memory_leaks=[],
-                snapshots=snapshots,
-                peak_memory_growth_mb=0.0,
-                total_object_growth=0,
-            )
-
-        leaks = []
-
-        initial = snapshots[0]
-        final = snapshots[-1]
-
-        memory_growth_mb = (final.current_memory_bytes - initial.current_memory_bytes) / (1024 * 1024)
-        object_growth = final.object_count - initial.object_count
-
-        if memory_growth_mb > self.threshold_mb:
-            leaks.append(
-                MemoryLeak(
-                    leak_type="memory_growth",
-                    description=f"Memory grew by {memory_growth_mb:.2f}MB during {func_name}",
-                    initial_memory_mb=initial.current_memory_bytes / (1024 * 1024),
-                    final_memory_mb=final.current_memory_bytes / (1024 * 1024),
-                    memory_growth_mb=memory_growth_mb,
-                    initial_objects=initial.object_count,
-                    final_objects=final.object_count,
-                    object_growth=object_growth,
-                    potential_cause="Possible memory leak in mutation pass",
-                )
-            )
-
-        if object_growth > self.object_growth_threshold:
-            leaks.append(
-                MemoryLeak(
-                    leak_type="object_leak",
-                    description=f"Object count grew by {object_growth} during {func_name}",
-                    initial_memory_mb=initial.current_memory_bytes / (1024 * 1024),
-                    final_memory_mb=final.current_memory_bytes / (1024 * 1024),
-                    memory_growth_mb=memory_growth_mb,
-                    initial_objects=initial.object_count,
-                    final_objects=final.object_count,
-                    object_growth=object_growth,
-                    potential_cause="Objects not being garbage collected",
-                )
-            )
-
-        gc_growth = (final.gc_gen0 + final.gc_gen1 + final.gc_gen2) - (
-            initial.gc_gen0 + initial.gc_gen1 + initial.gc_gen2
-        )
-        if gc_growth > 1000:
-            leaks.append(
-                MemoryLeak(
-                    leak_type="gc_pressure",
-                    description=f"GC pressure increased by {gc_growth} objects during {func_name}",
-                    initial_memory_mb=initial.current_memory_bytes / (1024 * 1024),
-                    final_memory_mb=final.current_memory_bytes / (1024 * 1024),
-                    memory_growth_mb=memory_growth_mb,
-                    initial_objects=initial.object_count,
-                    final_objects=final.object_count,
-                    object_growth=object_growth,
-                    potential_cause="High object allocation rate",
-                )
-            )
-
-        peak_growth = max((s.peak_memory_bytes - snapshots[0].peak_memory_bytes) / (1024 * 1024) for s in snapshots)
-
-        return LeakDetectionResult(
-            passed=len(leaks) == 0,
-            leaks_detected=len(leaks),
-            memory_leaks=leaks,
-            snapshots=snapshots,
-            peak_memory_growth_mb=peak_growth,
-            total_object_growth=object_growth,
-        )
+        pass
 
     def test_function(
         self,
@@ -305,47 +183,7 @@ class MemoryLeakDetector:
         Returns:
             LeakDetectionResult
         """
-        self.start_monitoring()
-
-        initial_snapshot = self._take_snapshot()
-        snapshots = [initial_snapshot]
-
-        try:
-            func(*args, **kwargs)
-
-            gc.collect()
-
-            final_snapshot = self._take_snapshot()
-            snapshots.append(final_snapshot)
-
-            return self.detect_leaks(snapshots, func.__name__)
-
-        except Exception as e:
-            logger.error(f"Error during leak testing: {e}")
-
-            return LeakDetectionResult(
-                passed=False,
-                leaks_detected=1,
-                memory_leaks=[
-                    MemoryLeak(
-                        leak_type="exception",
-                        description=f"Exception during test: {e}",
-                        initial_memory_mb=0,
-                        final_memory_mb=0,
-                        memory_growth_mb=0,
-                        initial_objects=0,
-                        final_objects=0,
-                        object_growth=0,
-                        potential_cause=str(e),
-                    )
-                ],
-                snapshots=snapshots,
-                peak_memory_growth_mb=0,
-                total_object_growth=0,
-            )
-
-        finally:
-            self.stop_monitoring()
+        pass
 
     def test_mutation_pass(
         self,
@@ -364,16 +202,7 @@ class MemoryLeakDetector:
         Returns:
             LeakDetectionResult
         """
-        from r2morph import Binary
-
-        def run_pass() -> None:
-            with Binary(binary_path, flags=["-2"], writable=True) as binary:
-                binary.analyze()
-
-                mutation = pass_class(config=config)
-                mutation.apply(binary)
-
-        return self.test_function(run_pass)
+        pass
 
 
 @dataclass
@@ -407,47 +236,11 @@ class ResourceLeakDetector:
 
     def _get_resource_counts(self) -> dict[str, int]:
         """Get current resource counts."""
-        import os
-
-        resources = {}
-
-        try:
-            resources["file_descriptors"] = len(os.listdir("/proc/self/fd"))
-        except Exception:
-            try:
-                import psutil
-
-                resources["file_descriptors"] = psutil.Process().num_fds()
-            except Exception:
-                resources["file_descriptors"] = 0
-
-        # Filter by concrete type before touching attributes: probing
-        # `hasattr(obj, "closed")` over every gc object invokes
-        # __getattr__ on arbitrary objects, and on objects with
-        # side-effecting __getattr__ (e.g. pytest's MarkGenerator,
-        # `pytest.mark`) it would synthesize `pytest.mark.closed` and
-        # emit a PytestUnknownMarkWarning -- fatal under `pytest -W
-        # error`. io.IOBase.closed is a plain, side-effect-free property
-        # and covers the real OS-backed file objects we care about.
-        resources["open_files"] = sum(1 for obj in gc.get_objects() if isinstance(obj, io.IOBase) and not obj.closed)
-
-        try:
-            import psutil
-
-            proc = psutil.Process()
-            resources["open_connections"] = len(proc.connections())
-        except Exception:
-            resources["open_connections"] = 0
-
-        resources["gc_tracked_objects"] = len(gc.get_objects())
-        resources["gc_garbage"] = len(gc.garbage)
-
-        return resources
+        pass
 
     def start_monitoring(self) -> None:
         """Start resource monitoring."""
-        gc.collect()
-        self._initial_resources = self._get_resource_counts()
+        pass
 
     def stop_monitoring(self) -> ResourceLeakTestResult:
         """
@@ -456,31 +249,7 @@ class ResourceLeakDetector:
         Returns:
             ResourceLeakTestResult
         """
-        gc.collect()
-        self._final_resources = self._get_resource_counts()
-
-        leaks = []
-
-        for resource_type, initial_count in self._initial_resources.items():
-            final_count = self._final_resources.get(resource_type, 0)
-
-            if final_count > initial_count:
-                leaked = final_count - initial_count
-                leaks.append(
-                    ResourceLeak(
-                        resource_type=resource_type,
-                        description=f"{resource_type} leaked: {leaked} instances",
-                        initial_count=initial_count,
-                        final_count=final_count,
-                        leaked_count=leaked,
-                    )
-                )
-
-        return ResourceLeakTestResult(
-            passed=len(leaks) == 0,
-            leaks_detected=len(leaks),
-            resource_leaks=leaks,
-        )
+        pass
 
     def test_function(self, func: Any, *args: Any, **kwargs: Any) -> ResourceLeakTestResult:
         """
@@ -494,14 +263,7 @@ class ResourceLeakDetector:
         Returns:
             ResourceLeakTestResult
         """
-        self.start_monitoring()
-
-        try:
-            func(*args, **kwargs)
-        except Exception as e:
-            logger.error(f"Error during resource leak test: {e}")
-
-        return self.stop_monitoring()
+        pass
 
 
 def create_memory_detector(

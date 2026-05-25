@@ -102,10 +102,7 @@ class ExecutionPlan:
 
     def get_stage(self, pass_name: str) -> int:
         """Get the stage number for a pass."""
-        for i, stage in enumerate(self.stages):
-            if pass_name in stage:
-                return i
-        return -1
+        pass
 
 
 class DependencyResolver:
@@ -494,8 +491,7 @@ class ParallelMutationEngine:
 
     def _get_results_copy(self) -> dict[str, PassResult]:
         """Thread-safe results copy."""
-        with self._lock:
-            return self._results.copy()
+        pass
 
     def execute(
         self,
@@ -712,42 +708,11 @@ class ParallelMutationEngine:
         Returns:
             True if rollback successful
         """
-        result = self._results.get(pass_name)
-        if not result or not result.checkpoint_path:
-            logger.warning(f"No checkpoint for pass: {pass_name}")
-            return False
-
-        try:
-            import shutil
-
-            shutil.copy2(result.checkpoint_path, self.binary.path)
-            result.status = PassStatus.ROLLED_BACK
-            logger.info(f"Rolled back to checkpoint before {pass_name}")
-            return True
-        except Exception as e:
-            logger.error(f"Rollback failed: {e}")
-            return False
+        pass
 
     def get_results_summary(self) -> dict[str, Any]:
         """Get summary of all execution results."""
-        completed = sum(1 for r in self._results.values() if r.status == PassStatus.COMPLETED)
-        failed = sum(1 for r in self._results.values() if r.status == PassStatus.FAILED)
-        skipped = sum(1 for r in self._results.values() if r.status == PassStatus.SKIPPED)
-        rolled_back = sum(1 for r in self._results.values() if r.status == PassStatus.ROLLED_BACK)
-
-        total_mutations = sum(r.mutations_applied for r in self._results.values())
-        total_duration = sum(r.duration_seconds for r in self._results.values())
-
-        return {
-            "total_passes": len(self._results),
-            "completed": completed,
-            "failed": failed,
-            "skipped": skipped,
-            "rolled_back": rolled_back,
-            "total_mutations": total_mutations,
-            "total_duration_seconds": total_duration,
-            "passes": {name: result.to_dict() for name, result in self._results.items()},
-        }
+        pass
 
 
 def execute_parallel(

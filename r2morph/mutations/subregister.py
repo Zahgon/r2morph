@@ -131,128 +131,32 @@ def _init_caches() -> None:
 _init_caches()
 
 
-def get_register_info(reg: str) -> Optional[RegisterInfo]:
-    return _register_info_cache.get(reg.lower())
 
 
-def get_base_register(reg: str) -> str:
-    info = get_register_info(reg)
-    return info.base_register if info else reg.lower()
 
 
-def get_register_size(reg: str) -> int:
-    info = get_register_info(reg)
-    return info.size_bits if info else 0
 
 
-def get_size_flag(reg: str) -> int:
-    size = get_register_size(reg)
-    if size == 64:
-        return REG_64
-    elif size == 32:
-        return REG_32
-    elif size == 16:
-        return REG_16
-    elif size == 8:
-        return REG_8L | REG_8H
-    return 0
 
 
-def get_subregisters(reg: str) -> tuple[Optional[str], ...]:
-    base = get_base_register(reg)
-    return REGISTER_MAP.get(base, (None, None, None, None))
 
 
-def get_subregister_by_size(reg: str, size_bits: int) -> Optional[str]:
-    base = get_base_register(reg)
-    subregs = REGISTER_MAP.get(base)
-
-    if not subregs:
-        return None
-
-    if size_bits == 64:
-        return base
-    elif size_bits == 32:
-        return subregs[0]
-    elif size_bits == 16:
-        return subregs[1]
-    elif size_bits == 8:
-        return subregs[2] if len(subregs) > 2 else None
-
-    return None
 
 
-def get_registers_by_size(size_bits: int) -> list[str]:
-    return _size_to_refs.get(size_bits, []).copy()
 
 
-def is_preserved_register(reg: str) -> bool:
-    base = get_base_register(reg)
-    return base in PRESERVED_REGS
 
 
-def is_scratch_register(reg: str) -> bool:
-    base = get_base_register(reg)
-    return base in SCRATCH_REGS
 
 
-def get_compatible_registers(reg: str, same_size: bool = True) -> list[str]:
-    base = get_base_register(reg)
-    size = get_register_size(reg)
-
-    if same_size and size in _size_to_regs:
-        return [r for r in _size_to_regs[size] if get_base_register(r) != base]
-
-    result = []
-    for size_bits, regs in _size_to_regs.items():
-        for r in regs:
-            if get_base_register(r) != base:
-                result.append(r)
-
-    return result
 
 
-def get_random_compatible_register(reg: str, exclude: Optional[list[str]] = None) -> Optional[str]:
-    import random
-
-    compat = get_compatible_registers(reg, same_size=True)
-    if exclude:
-        compat = [r for r in compat if r not in exclude]
-
-    if not compat:
-        return None
-
-    return random.choice(compat)
 
 
-def registers_overlap(reg1: str, reg2: str) -> bool:
-    base1 = get_base_register(reg1)
-    base2 = get_base_register(reg2)
-    return base1 == base2
 
 
-def get_all_registers() -> list[str]:
-    return list(REGISTER_MAP.keys())
 
 
-def get_register_weights() -> dict[str, tuple[int, tuple[int, int, int, int]]]:
-    return {
-        "rax": (30, (10, 5, 2, 1)),
-        "rbx": (20, (8, 4, 2, 1)),
-        "rcx": (25, (10, 5, 2, 1)),
-        "rdx": (25, (10, 5, 2, 1)),
-        "rsi": (15, (6, 3, 1, 1)),
-        "rdi": (15, (6, 3, 1, 1)),
-        "rbp": (5, (2, 1, 1, 1)),
-        "r8": (10, (4, 2, 1, 1)),
-        "r9": (10, (4, 2, 1, 1)),
-        "r10": (20, (8, 4, 2, 1)),
-        "r11": (20, (8, 4, 2, 1)),
-        "r12": (15, (6, 3, 1, 1)),
-        "r13": (15, (6, 3, 1, 1)),
-        "r14": (15, (6, 3, 1, 1)),
-        "r15": (15, (6, 3, 1, 1)),
-    }
 
 
 _size_to_refs = _size_to_regs

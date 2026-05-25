@@ -67,9 +67,7 @@ class AngrBridge:
     @property
     def angr_project(self) -> Any:
         """Get or create angr project."""
-        if self._angr_project is None:
-            self._angr_project = self._create_angr_project()
-        return self._angr_project
+        pass
 
     def _create_angr_project(self) -> Any:
         """
@@ -78,27 +76,7 @@ class AngrBridge:
         Returns:
             Configured angr Project
         """
-        try:
-            # Get binary path from r2
-            binary_path = Path(self.binary.path)
-
-            # Create angr project with appropriate settings
-            project = angr.Project(
-                str(binary_path),
-                auto_load_libs=self.auto_load_libs,
-                use_sim_procedures=True,
-                exclude_sim_procedures_func=self._should_exclude_simprocedure,
-            )
-
-            logger.info(f"Created angr project for {binary_path}")
-            logger.info(f"Architecture: {project.arch}")
-            logger.info(f"Entry point: 0x{project.entry:x}")
-
-            return project
-
-        except Exception as e:
-            logger.error(f"Failed to create angr project: {e}")
-            raise
+        pass
 
     def _should_exclude_simprocedure(self, func_name: str) -> bool:
         """
@@ -110,18 +88,7 @@ class AngrBridge:
         Returns:
             True if function should be excluded
         """
-        # Don't use sim procedures for functions we want to analyze symbolically
-        excluded_patterns = [
-            "malloc",
-            "free",
-            "memcpy",
-            "memset",  # Memory operations
-            "printf",
-            "scanf",
-            "fprintf",  # I/O operations
-        ]
-
-        return any(pattern in func_name.lower() for pattern in excluded_patterns)
+        pass
 
     def convert_r2_cfg_to_angr(self, r2_cfg: ControlFlowGraph) -> Any | None:
         """
@@ -133,22 +100,7 @@ class AngrBridge:
         Returns:
             angr CFGFast instance or None if conversion fails
         """
-        try:
-            # Perform angr CFG analysis on the same function
-            cfg = self.angr_project.analyses.CFGFast(
-                regions=[(r2_cfg.function_address, r2_cfg.function_address + 0x1000)],
-                normalize=True,
-                data_references=True,
-            )
-
-            # Store mapping between r2 and angr addresses
-            self._build_address_mapping(r2_cfg, cfg)
-
-            return cfg
-
-        except Exception as e:
-            logger.error(f"Failed to convert r2 CFG to angr: {e}")
-            return None
+        pass
 
     def _build_address_mapping(self, r2_cfg: ControlFlowGraph, angr_cfg: Any) -> None:
         """
@@ -158,11 +110,7 @@ class AngrBridge:
             r2_cfg: r2morph CFG
             angr_cfg: angr CFG
         """
-        # For now, assume direct address mapping (same virtual addresses)
-        for r2_addr, r2_block in r2_cfg.blocks.items():
-            if angr_cfg.get_any_node(r2_addr):
-                self._r2_to_angr_mapping[r2_addr] = r2_addr
-                self._angr_to_r2_mapping[r2_addr] = r2_addr
+        pass
 
     def create_symbolic_state(self, address: int, concrete_values: dict[str, Any] | None = None) -> Any | None:
         """
@@ -250,24 +198,7 @@ class AngrBridge:
         Returns:
             Tuple of (start_addr, end_addr)
         """
-        try:
-            func = self.angr_project.kb.functions.get(function_addr)
-            if func:
-                return func.addr, func.addr + func.size
-            else:
-                # Fallback to r2 analysis
-                functions = self.binary.get_functions()
-                for f in functions:
-                    if f.get("offset", 0) == function_addr:
-                        size = f.get("size", 0x100)
-                        return function_addr, function_addr + size
-
-                # Default size if not found
-                return function_addr, function_addr + 0x100
-
-        except Exception as e:
-            logger.error(f"Failed to get function boundaries: {e}")
-            return function_addr, function_addr + 0x100
+        pass
 
     def synchronize_analysis_results(self) -> None:
         """
@@ -276,24 +207,7 @@ class AngrBridge:
         This method ensures both frameworks have consistent views
         of the binary structure and analysis results.
         """
-        try:
-            # Re-analyze with angr to get updated CFG
-            cfg = self.angr_project.analyses.CFGFast()
-
-            # Update r2 analysis with angr discoveries
-            for func_addr in cfg.kb.functions:
-                cfg.kb.functions[func_addr]
-
-                # Check if r2 missed this function
-                r2_functions = self.binary.get_functions()
-                r2_addrs = {f.get("offset", 0) for f in r2_functions}
-
-                if func_addr not in r2_addrs:
-                    logger.info(f"angr discovered new function at 0x{func_addr:x}")
-                    # Could potentially add to r2 via commands
-
-        except Exception as e:
-            logger.error(f"Failed to synchronize analysis results: {e}")
+        pass
 
     def cleanup(self) -> None:
         """Clean up resources."""

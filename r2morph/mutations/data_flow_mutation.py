@@ -196,11 +196,7 @@ class DataFlowMutationPass(MutationPass):
         Returns:
             True if register is safe to use
         """
-        if reg not in caller_saved:
-            return False
-
-        live = live_in.get(addr, set())
-        return reg not in live
+        pass
 
     def _find_safe_substitution_candidates(
         self,
@@ -277,24 +273,7 @@ class DataFlowMutationPass(MutationPass):
         Returns:
             List of instructions or None
         """
-        if not dead_regs:
-            return None
-
-        reg = random.choice(list(dead_regs))
-
-        if bits == 64:
-            patterns = [
-                [f"push {reg}", f"mov {reg}, 0", f"xor {reg}, {reg}", f"pop {reg}"],
-                [f"push {reg}", f"add {reg}, 1", f"sub {reg}, 1", f"pop {reg}"],
-                [f"xor {reg}, {reg}", f"not {reg}", f"not {reg}"],
-            ]
-        else:
-            patterns = [
-                [f"push {reg}", f"mov {reg}, 0", f"pop {reg}"],
-                [f"xor {reg}, {reg}"],
-            ]
-
-        return random.choice(patterns)
+        pass
 
     def apply(self, binary: Any) -> dict[str, Any]:
         """

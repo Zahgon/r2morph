@@ -45,11 +45,11 @@ class BinaryWriter:
 
     def set_r2(self, r2: "DisassemblerInterface | None") -> None:
         """Update the disassembler connection after reload."""
-        self._r2 = r2
+        pass
 
     def set_writable(self, writable: bool) -> None:
         """Update writable mode."""
-        self._writable = writable
+        pass
 
     def track_mutation(self) -> int:
         """
@@ -58,16 +58,15 @@ class BinaryWriter:
         Returns:
             Current mutation counter after increment
         """
-        self._mutation_counter += 1
-        return self._mutation_counter
+        pass
 
     def reset_mutation_counter(self) -> None:
         """Reset the mutation counter."""
-        self._mutation_counter = 0
+        pass
 
     def get_mutation_counter(self) -> int:
         """Get the current mutation counter."""
-        return self._mutation_counter
+        pass
 
     def _validate_address_bounds(
         self,
@@ -225,7 +224,7 @@ class BinaryWriter:
         Returns:
             True if successful
         """
-        return self.write_bytes(address, instruction)
+        pass
 
     def nop_fill(self, address: int, size: int) -> bool:
         """
@@ -278,6 +277,4 @@ class BinaryWriter:
         Returns:
             True if reload is needed
         """
-        if not low_memory:
-            return False
-        return self._mutation_counter > 0 and self._mutation_counter % batch_size == 0
+        pass

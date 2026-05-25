@@ -212,17 +212,15 @@ class MutationPass(ABC):
 
     def enable(self) -> None:
         """Enable this mutation pass."""
-        self.enabled = True
-        logger.debug(f"Enabled pass: {self.name}")
+        pass
 
     def disable(self) -> None:
         """Disable this mutation pass."""
-        self.enabled = False
-        logger.debug(f"Disabled pass: {self.name}")
+        pass
 
     def get_stats(self) -> dict[str, Any]:
         """Get statistics from the last run."""
-        return self._stats
+        pass
 
     def set_support(
         self,
@@ -338,7 +336,7 @@ class MutationPass(ABC):
 
     def get_records(self) -> list[MutationRecord]:
         """Get mutation records from the last run."""
-        return list(self._records)
+        pass
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} name={self.name} enabled={self.enabled}>"

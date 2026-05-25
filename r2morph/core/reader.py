@@ -40,7 +40,7 @@ class BinaryReader:
 
     def set_r2(self, r2: "DisassemblerInterface | None") -> None:
         """Update the disassembler connection after reload."""
-        self._r2 = r2
+        pass
 
     def read_bytes(self, address: int, size: int) -> bytes:
         """
@@ -276,37 +276,4 @@ class BinaryReader:
         Returns:
             Physical offset in the file, or None if resolution fails
         """
-        if self._r2 is None:
-            raise RuntimeError("Binary not opened. Call open() first.")
-
-        paddr_result = self._r2.cmd(f"s2p 0x{address:x}")
-
-        if paddr_result and paddr_result.strip():
-            try:
-                return int(paddr_result.strip(), 16)
-            except ValueError:
-                # r2 returned a non-hex paddr (e.g. empty / "-1"); the
-                # address is simply unresolved -> fall through to None.
-                pass
-
-        for section in self.get_sections():
-            vaddr = section.get("vaddr")
-            paddr = section.get("paddr")
-            size = section.get("size") or section.get("vsize") or 0
-            if vaddr is None or paddr is None:
-                continue
-            if size <= 0:
-                continue
-            section_end = vaddr + size
-            if section_end < vaddr:
-                continue
-            if vaddr <= address < section_end:
-                offset_in_section = address - vaddr
-                physical_offset = paddr + offset_in_section
-                if physical_offset < paddr:
-                    continue
-                logger.debug(f"Mapped vaddr 0x{address:x} -> section paddr 0x{physical_offset:x}")
-                return int(physical_offset)
-
-        logger.warning(f"Could not resolve physical offset for vaddr 0x{address:x}")
-        return None
+        pass

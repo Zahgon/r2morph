@@ -70,11 +70,11 @@ class Function:
         Returns:
             Number of basic blocks as complexity metric
         """
-        return len(self.basic_blocks)
+        pass
 
     def is_leaf(self) -> bool:
         """Check if function is a leaf (no calls)."""
-        return len(self.calls) == 0
+        pass
 
     def __repr__(self) -> str:
         return f"<Function {self.name} @ 0x{self.address:x} size={self.size}>"

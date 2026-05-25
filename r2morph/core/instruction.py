@@ -81,23 +81,23 @@ class Instruction:
 
     def is_jump(self) -> bool:
         """Check if instruction is a jump."""
-        return self.type in ["jmp", "cjmp", "ujmp"]
+        pass
 
     def is_call(self) -> bool:
         """Check if instruction is a call."""
-        return self.type == "call"
+        pass
 
     def is_ret(self) -> bool:
         """Check if instruction is a return."""
-        return self.type == "ret"
+        pass
 
     def is_nop(self) -> bool:
         """Check if instruction is a NOP."""
-        return self.mnemonic.lower() == "nop"
+        pass
 
     def is_conditional(self) -> bool:
         """Check if instruction is conditional."""
-        return self.type == "cjmp" or self.mnemonic.startswith(("cmov", "j"))
+        pass
 
     def get_jump_target(self) -> int | None:
         """
@@ -106,9 +106,7 @@ class Instruction:
         Returns:
             Target address or None
         """
-        if self.is_jump():
-            return self.metadata.get("jump")
-        return None
+        pass
 
     def get_call_target(self) -> int | None:
         """
@@ -117,9 +115,7 @@ class Instruction:
         Returns:
             Target address or None
         """
-        if self.is_call():
-            return self.metadata.get("jump")
-        return None
+        pass
 
     def __repr__(self) -> str:
         ops = ", ".join(self.operands)

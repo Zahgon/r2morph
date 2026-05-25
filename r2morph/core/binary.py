@@ -110,35 +110,17 @@ class Binary:
     @property
     def assembly(self) -> "AssemblyService":
         """Get the AssemblyService instance (lazy-loaded)."""
-        if self._assembly_service is None:
-            with self._lock:
-                if self._assembly_service is None:
-                    from r2morph.core.assembly import get_assembly_service
-
-                    self._assembly_service = get_assembly_service()
-        return self._assembly_service
+        pass
 
     @property
     def memory_manager(self) -> "MemoryManager":
         """Get the MemoryManager instance (lazy-loaded)."""
-        if self._memory_manager is None:
-            with self._lock:
-                if self._memory_manager is None:
-                    from r2morph.core.memory_manager import get_memory_manager
-
-                    self._memory_manager = get_memory_manager()
-        return self._memory_manager
+        pass
 
     @property
     def reader(self) -> "BinaryReader":
         """Get the BinaryReader instance (lazy-loaded)."""
-        if self._reader is None:
-            with self._lock:
-                if self._reader is None:
-                    from r2morph.core.reader import BinaryReader
-
-                    self._reader = BinaryReader(self.r2)
-        return self._reader
+        pass
 
     @property
     def writer(self) -> "BinaryWriter":
@@ -160,75 +142,16 @@ class Binary:
 
     def _discard_failed_r2(self) -> None:
         """Tear down a half-spawned r2 so a retry does not leak it."""
-        r2 = self.r2
-        self.r2 = None
-        if r2 is not None and hasattr(r2, "quit"):
-            try:
-                r2.quit()
-            except (BrokenPipeError, OSError) as exc:
-                # The pipe is already broken; nothing to gracefully close.
-                logger.debug("Ignoring teardown error on broken r2 pipe: %s", exc)
+        pass
 
     def _spawn_r2(self) -> Any:
         """Spawn the radare2 subprocess (seam: overridable for testing)."""
-        return r2pipe.open(str(self.path), flags=self.flags)
+        pass
 
     def _open_r2pipe_with_retry(self) -> None:
         """Spawn r2pipe + read initial info, retrying transient spawn races."""
-        last_error: Exception | None = None
-        for attempt in range(1, _R2PIPE_OPEN_ATTEMPTS + 1):
-            try:
-                self.r2 = self._spawn_r2()
-                self.info = self.r2.cmdj("ij") or {}
-                return
-            except (BrokenPipeError, ConnectionError, OSError) as exc:
-                last_error = exc
-                logger.warning(
-                    "r2pipe spawn failed for %s (attempt %d/%d): %s",
-                    self.path,
-                    attempt,
-                    _R2PIPE_OPEN_ATTEMPTS,
-                    exc,
-                )
-                self._discard_failed_r2()
-                if attempt < _R2PIPE_OPEN_ATTEMPTS:
-                    time.sleep(_R2PIPE_OPEN_RETRY_BACKOFF_SECONDS * attempt)
-        assert last_error is not None
-        raise last_error
+        pass
 
-    def open(self) -> "Binary":
-        try:
-            logger.info(f"Opening binary: {self.path}")
-            if self._injected_disassembler is not None:
-                # Use injected disassembler (DIP: enables testing without r2pipe)
-                self._injected_disassembler.open(self.path, self.flags)
-                self.r2 = self._injected_disassembler
-                self.info = self.r2.cmdj("ij") or {}
-            else:
-                self._open_r2pipe_with_retry()
-
-            if self._low_memory:
-                logger.debug("Configuring r2 for low memory mode")
-                self.r2.cmd("e bin.cache=false")
-                self.r2.cmd("e io.cache=false")
-                self.r2.cmd("e bin.strings=false")
-
-            logger.debug(f"Binary info: {self.info.get('core', {}).get('format', 'unknown')}")
-
-            # Update services with new r2 connection
-            if self._reader:
-                self._reader.set_r2(self.r2)
-            if self._writer:
-                self._writer.set_r2(self.r2)
-
-        except Exception as e:
-            # A spawn that succeeded but failed a later step (low-memory
-            # config cmd, set_r2, ...) would otherwise leave a live
-            # radare2 subprocess + pipe fds attached to self until GC.
-            # Tear it down before raising, like the retry path does.
-            self._discard_failed_r2()
-            raise RuntimeError(f"Failed to open binary with r2pipe: {e}")
-        return self
 
     def close(self) -> None:
         if self.r2:
@@ -365,10 +288,7 @@ class Binary:
 
     def write_instruction(self, address: int, instruction: str) -> bool:
         """Assemble and write an instruction at specified address."""
-        assembled = self.assemble(instruction)
-        if assembled:
-            return self.write_bytes(address, assembled)
-        return False
+        pass
 
     def nop_fill(self, address: int, size: int) -> bool:
         """Fill a region with NOPs."""
@@ -415,13 +335,7 @@ class Binary:
 
     def track_mutation(self, batch_size: int = BATCH_MUTATION_CHECKPOINT) -> None:
         """Track mutation count and reload r2 periodically for batch processing."""
-        if not self._low_memory:
-            return
-
-        self._mutation_counter += 1
-        if self._mutation_counter % batch_size == 0:
-            logger.info(f"Batch checkpoint: {self._mutation_counter} mutations applied. Reloading r2 to free memory...")
-            self.reload()
+        pass
 
     # Utility methods
 

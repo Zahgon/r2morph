@@ -263,38 +263,4 @@ class EngineConfig:
         Returns:
             EngineConfig with reduced settings to prevent OOM on large binaries.
         """
-        return cls(
-            aggressive=False,
-            force_different=False,
-            nop=NopInsertionConfig(
-                max_per_function=2,
-                probability=0.3,
-                use_creative_nops=False,
-                max_nops_per_function=2,
-            ),
-            substitution=InstructionSubstitutionConfig(
-                max_per_function=2,
-                probability=0.3,
-                max_substitutions_per_function=5,
-            ),
-            register=RegisterSubstitutionConfig(
-                max_per_function=2,
-                probability=0.3,
-                max_substitutions_per_function=2,
-            ),
-            expansion=InstructionExpansionConfig(
-                max_per_function=2,
-                probability=0.3,
-                max_expansions_per_function=2,
-            ),
-            block=BlockReorderingConfig(
-                max_per_function=2,
-                probability=0.2,
-                max_reorderings_per_function=2,
-            ),
-            analysis=AnalysisConfig(
-                level="aa",
-                timeout_seconds=600,
-                low_memory=True,
-            ),
-        )
+        pass

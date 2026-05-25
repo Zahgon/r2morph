@@ -739,11 +739,4 @@ class BinaryRewriter:
 
     def get_rewrite_statistics(self) -> dict[str, Any]:
         """Get statistics about the planned rewrite."""
-        return {
-            "total_patches": len(self.patches),
-            "total_size_change": sum(p.size_change for p in self.patches),
-            "binary_format": self.binary_format.value,
-            "architecture": f"{self.arch} {self.bits}-bit",
-            "relocations": len(self.relocations),
-            "sections": len(self.sections),
-        }
+        pass

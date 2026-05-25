@@ -160,17 +160,7 @@ class PolymorphicEngine:
             condition: Optional condition function (takes stats, returns bool)
             probability: Probability of following this transition
         """
-        if from_state not in self.transitions:
-            self.transitions[from_state] = []
-
-        transition = StateTransition(
-            from_state=from_state,
-            to_state=to_state,
-            mutation_name=mutation_name,
-            condition=condition,
-            probability=probability,
-        )
-        self.transitions[from_state].append(transition)
+        pass
 
     def set_convergence_check(self, check: Callable[[dict[str, Any]], bool]) -> None:
         """
@@ -182,7 +172,7 @@ class PolymorphicEngine:
         Args:
             check: Function that takes stats dict and returns bool
         """
-        self.convergence_check = check
+        pass
 
     def get_available_transitions(self, state: EngineState) -> list[StateTransition]:
         """
@@ -332,11 +322,7 @@ class PolymorphicEngine:
         Returns:
             Dictionary mapping states to list of possible next states
         """
-        graph: dict[EngineState, list[str]] = {}
-        for state in EngineState:
-            transitions = self.transitions.get(state, [])
-            graph[state] = [f"{t.mutation_name} -> {t.to_state.name}" for t in transitions]
-        return graph
+        pass
 
 
 class PolymorphicEnginePass(MutationPass):
@@ -405,118 +391,7 @@ class PolymorphicEnginePass(MutationPass):
         forcing every importer of ``polymorphic_engine`` to drag in the
         whole ``r2morph.mutations`` subtree.
         """
-        from r2morph.mutations.block_reordering import BlockReorderingPass
-        from r2morph.mutations.code_mobility import CodeMobilityPass
-        from r2morph.mutations.code_virtualization import CodeVirtualizationPass
-        from r2morph.mutations.control_flow_flattening import ControlFlowFlatteningPass
-        from r2morph.mutations.dead_code_injection import DeadCodeInjectionPass
-        from r2morph.mutations.function_outlining import FunctionOutliningPass
-        from r2morph.mutations.instruction_substitution import InstructionSubstitutionPass
-        from r2morph.mutations.string_obfuscation import StringObfuscationPass
-
-        state = EngineState.INIT
-
-        if self.enable_substitution:
-            self.engine.add_mutation("InstructionSubstitution", InstructionSubstitutionPass())
-            self.engine.add_transition(
-                EngineState.INIT,
-                EngineState.SUBSTITUTED,
-                "InstructionSubstitution",
-                probability=0.8,
-            )
-            state = EngineState.SUBSTITUTED
-
-        if self.enable_dead_code:
-            from_state = state
-            to_state = EngineState.DEAD_CODE_INJECTED
-            self.engine.add_mutation("DeadCodeInjection", DeadCodeInjectionPass())
-            self.engine.add_transition(
-                from_state,
-                to_state,
-                "DeadCodeInjection",
-                probability=0.7,
-            )
-            state = to_state
-
-        if self.enable_reordering:
-            from_state = state
-            to_state = EngineState.REORDERED
-            self.engine.add_mutation("BlockReordering", BlockReorderingPass())
-            self.engine.add_transition(
-                from_state,
-                to_state,
-                "BlockReordering",
-                probability=0.6,
-            )
-            state = to_state
-
-        if self.enable_flattening:
-            from_state = state
-            to_state = EngineState.FLATTENED
-            self.engine.add_mutation("ControlFlowFlattening", ControlFlowFlatteningPass())
-            self.engine.add_transition(
-                from_state,
-                to_state,
-                "ControlFlowFlattening",
-                probability=0.5,
-            )
-            state = to_state
-
-        if self.enable_string_obfuscation:
-            from_state = state
-            to_state = EngineState.STRING_OBFUSCATED
-            self.engine.add_mutation("StringObfuscation", StringObfuscationPass())
-            self.engine.add_transition(
-                from_state,
-                to_state,
-                "StringObfuscation",
-                probability=0.6,
-            )
-            state = to_state
-
-        if self.enable_virtualization:
-            from_state = state
-            to_state = EngineState.VIRTUALIZED
-            self.engine.add_mutation("CodeVirtualization", CodeVirtualizationPass())
-            self.engine.add_transition(
-                from_state,
-                to_state,
-                "CodeVirtualization",
-                probability=0.3,
-            )
-            state = to_state
-
-        if self.enable_mobility:
-            from_state = state
-            to_state = EngineState.MOBILIZED
-            self.engine.add_mutation("CodeMobility", CodeMobilityPass())
-            self.engine.add_transition(
-                from_state,
-                to_state,
-                "CodeMobility",
-                probability=0.4,
-            )
-            state = to_state
-
-        if self.enable_outlining:
-            from_state = state
-            to_state = EngineState.OUTLINED
-            self.engine.add_mutation("FunctionOutlining", FunctionOutliningPass())
-            self.engine.add_transition(
-                from_state,
-                to_state,
-                "FunctionOutlining",
-                probability=0.3,
-            )
-            state = to_state
-
-        self.engine.add_mutation("NoOp", NoOp())
-        self.engine.add_transition(
-            state,
-            EngineState.FINAL,
-            "NoOp",
-            probability=1.0,
-        )
+        pass
 
     def register_mutation(self, name: str, mutation: MutationPass) -> None:
         """
@@ -526,7 +401,7 @@ class PolymorphicEnginePass(MutationPass):
             name: Name to identify the mutation
             mutation: Mutation pass instance
         """
-        self.engine.add_mutation(name, mutation)
+        pass
 
     def apply(self, binary: Any) -> dict[str, Any]:
         """

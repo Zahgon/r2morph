@@ -80,42 +80,7 @@ class VMHandlerAnalyzer:
 
     def _load_handler_patterns(self) -> dict[VMHandlerType, list[dict[str, Any]]]:
         """Load patterns for identifying different handler types."""
-        patterns = {
-            VMHandlerType.ARITHMETIC: [
-                {
-                    "pattern": ["add", "sub", "mul", "div", "inc", "dec"],
-                    "description": "Basic arithmetic operations",
-                    "confidence": 0.8,
-                },
-                {
-                    "pattern": ["add.*eax.*ebx", "mov.*eax"],
-                    "description": "Register arithmetic pattern",
-                    "confidence": 0.7,
-                },
-            ],
-            VMHandlerType.LOGICAL: [
-                {
-                    "pattern": ["and", "or", "xor", "not", "shl", "shr"],
-                    "description": "Logical and bitwise operations",
-                    "confidence": 0.8,
-                }
-            ],
-            VMHandlerType.MEMORY: [
-                {"pattern": ["mov.*\\[.*\\]", "lea"], "description": "Memory access patterns", "confidence": 0.7}
-            ],
-            VMHandlerType.STACK: [{"pattern": ["push", "pop"], "description": "Stack operations", "confidence": 0.9}],
-            VMHandlerType.BRANCH: [
-                {
-                    "pattern": ["jmp", "je", "jne", "jz", "jnz", "jc", "jnc"],
-                    "description": "Conditional and unconditional jumps",
-                    "confidence": 0.8,
-                }
-            ],
-            VMHandlerType.COMPARE: [
-                {"pattern": ["cmp", "test"], "description": "Comparison operations", "confidence": 0.9}
-            ],
-        }
-        return patterns
+        pass
 
     def analyze_vm_architecture(self, suspected_dispatcher: int) -> VMArchitecture:
         """
@@ -506,24 +471,4 @@ class VMHandlerAnalyzer:
 
     def get_handler_statistics(self) -> dict[str, Any]:
         """Get statistics about analyzed handlers."""
-        if not self.vm_architecture:
-            return {}
-
-        type_counts: dict[str, int] = {}
-        total_handlers = len(self.vm_architecture.handlers)
-
-        for handler in self.vm_architecture.handlers.values():
-            handler_type = handler.handler_type.value
-            type_counts[handler_type] = type_counts.get(handler_type, 0) + 1
-
-        avg_confidence = 0.0
-        if total_handlers > 0:
-            avg_confidence = sum(h.confidence for h in self.vm_architecture.handlers.values()) / total_handlers
-
-        return {
-            "total_handlers": total_handlers,
-            "handler_types": type_counts,
-            "average_confidence": avg_confidence,
-            "dispatcher_address": self.vm_architecture.dispatcher_address,
-            "handler_table_address": self.vm_architecture.handler_table_address,
-        }
+        pass

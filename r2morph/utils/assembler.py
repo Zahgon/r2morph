@@ -75,16 +75,7 @@ class R2Assembler:
             >>> asm.assemble_multiple(["push ebp", "mov ebp, esp"])
             b'\\x55\\x89\\xe5'
         """
-        all_bytes = b""
-
-        for insn in instructions:
-            insn_bytes = self.assemble(insn)
-            if insn_bytes is None:
-                logger.error(f"Failed to assemble: {insn}")
-                return None
-            all_bytes += insn_bytes
-
-        return all_bytes
+        pass
 
     def get_instruction_size(self, instruction: str) -> int:
         """
@@ -96,8 +87,7 @@ class R2Assembler:
         Returns:
             Size in bytes (0 if assembly failed)
         """
-        assembled = self.assemble(instruction)
-        return len(assembled) if assembled else 0
+        pass
 
     def disassemble(self, data: bytes, address: int = 0) -> str | None:
         """
@@ -116,16 +106,7 @@ class R2Assembler:
             >>> asm.disassemble(b'\\x31\\xc0')
             'xor eax, eax'
         """
-        try:
-            hex_str = data.hex()
-
-            result = self.r2.cmd(f"pad {hex_str}")
-
-            return result.strip() if result else None
-
-        except Exception as e:
-            logger.error(f"Disassembly error: {e}")
-            return None
+        pass
 
 
 COMMON_OPCODES_X64 = {

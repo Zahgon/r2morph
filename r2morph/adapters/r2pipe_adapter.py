@@ -52,14 +52,7 @@ class R2PipeAdapter:
             FileNotFoundError: If the binary file does not exist.
             RuntimeError: If r2pipe fails to open the file.
         """
-        if not path.exists():
-            raise FileNotFoundError(f"Binary not found: {path}")
-
-        flags = flags or []
-        try:
-            self._r2 = r2pipe.open(str(path), flags=flags)
-        except Exception as e:
-            raise RuntimeError(f"Failed to open binary with r2pipe: {e}") from e
+        pass
 
     def close(self) -> None:
         """Close the r2pipe connection.
@@ -135,7 +128,7 @@ class R2PipeAdapter:
         Returns:
             True if connected to radare2, False otherwise.
         """
-        return self._r2 is not None
+        pass
 
     def __enter__(self) -> "R2PipeAdapter":
         """Support context manager protocol."""
@@ -153,4 +146,4 @@ def _verify_protocol() -> DisassemblerInterface:
     Never called; mypy checks the return type to assert structural
     conformance of R2PipeAdapter to DisassemblerInterface.
     """
-    return R2PipeAdapter()
+    pass

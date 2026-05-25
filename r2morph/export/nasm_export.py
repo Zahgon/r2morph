@@ -334,14 +334,11 @@ class NASMExporter:
 
     def set_blocks(self, blocks: list[BasicBlock]) -> None:
         """Set all blocks at once."""
-        self.blocks = blocks
-        for block in blocks:
-            label = block.label if block.label else f"block_{hex(block.address)}"
-            self.labels[block.address] = label
+        pass
 
     def set_labels(self, labels: dict[int, str]) -> None:
         """Set custom labels for addresses."""
-        self.labels.update(labels)
+        pass
 
     def patch_control_flow(self) -> None:
         """Patch control flow instructions to use symbolic labels."""

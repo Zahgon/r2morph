@@ -133,21 +133,11 @@ class ResultCache:
 
     def set(self, key: str, value: Any) -> None:
         """Cache a result."""
-        if len(self.cache) >= self.max_size:
-            self._evict_lru()
-
-        self.cache[key] = value
-        self._access_counter += 1
-        self.access_times[key] = self._access_counter
+        pass
 
     def _evict_lru(self) -> None:
         """Evict least recently used item."""
-        if not self.access_times:
-            return
-
-        lru_key = min(self.access_times.keys(), key=lambda k: self.access_times[k])
-        del self.cache[lru_key]
-        del self.access_times[lru_key]
+        pass
 
     def get_hit_ratio(self) -> float:
         """Get cache hit ratio."""
@@ -323,16 +313,7 @@ class IncrementalAnalyzer:
 
     def _load_state(self) -> None:
         """Load incremental analysis state."""
-        if self.state_file.exists():
-            try:
-                import json
-
-                with open(self.state_file, "r") as f:
-                    self.file_states = json.load(f)
-                logger.debug(f"Loaded state for {len(self.file_states)} files")
-            except Exception as e:
-                logger.warning(f"Failed to load incremental state: {e}")
-                self.file_states = {}
+        pass
 
     def _save_state(self) -> None:
         """Save incremental analysis state."""
@@ -505,29 +486,6 @@ class OptimizedAnalysisFramework:
 def create_detection_analysis_func() -> Callable[[str], dict[str, Any]]:
     """Create detection analysis function for parallel processing."""
 
-    def analyze_detection(binary_path: str) -> dict[str, Any]:
-        try:
-            from r2morph import Binary
-            from r2morph.detection import ObfuscationDetector
-
-            with Binary(binary_path) as bin_obj:
-                bin_obj.analyze()
-
-                detector = ObfuscationDetector()
-                result = detector.analyze_binary(bin_obj)
-
-                return {
-                    "packer_detected": result.packer_detected.value if result.packer_detected else None,
-                    "vm_detected": result.vm_detected,
-                    "anti_analysis_detected": result.anti_analysis_detected,
-                    "control_flow_flattened": result.control_flow_flattened,
-                    "mba_detected": result.mba_detected,
-                    "confidence_score": result.confidence_score,
-                    "techniques_count": len(result.obfuscation_techniques),
-                }
-
-        except Exception as e:
-            return {"error": str(e)}
 
     return analyze_detection
 
@@ -535,36 +493,6 @@ def create_detection_analysis_func() -> Callable[[str], dict[str, Any]]:
 def create_devirtualization_analysis_func() -> Callable[[str], dict[str, Any]]:
     """Create devirtualization analysis function for parallel processing."""
 
-    def analyze_devirtualization(binary_path: str) -> dict[str, Any]:
-        try:
-            from r2morph import Binary
-            from r2morph.devirtualization import CFOSimplifier
-
-            with Binary(binary_path) as bin_obj:
-                bin_obj.analyze()
-
-                cfo_simplifier = CFOSimplifier(bin_obj)
-                functions = bin_obj.get_functions()[:3]  # Limit for performance
-
-                total_complexity_reduction = 0
-                simplified_functions = 0
-
-                for func in functions:
-                    func_addr = func.get("offset", 0)
-                    result = cfo_simplifier.simplify_control_flow(func_addr)
-                    if result.success:
-                        total_complexity_reduction += result.original_complexity - result.simplified_complexity
-                        simplified_functions += 1
-
-                return {
-                    "functions_analyzed": len(functions),
-                    "functions_simplified": simplified_functions,
-                    "total_complexity_reduction": total_complexity_reduction,
-                    "average_complexity_reduction": total_complexity_reduction / len(functions) if functions else 0,
-                }
-
-        except Exception as e:
-            return {"error": str(e)}
 
     return analyze_devirtualization
 

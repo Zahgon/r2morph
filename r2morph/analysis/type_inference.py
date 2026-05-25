@@ -105,48 +105,31 @@ class TypeInfo:
 
     def is_pointer(self) -> bool:
         """Check if this is a pointer type."""
-        return self.category == TypeCategory.POINTER
+        pass
 
     def is_array(self) -> bool:
         """Check if this is an array type."""
-        return self.category == TypeCategory.ARRAY
+        pass
 
     def is_struct(self) -> bool:
         """Check if this is a struct type."""
-        return self.category == TypeCategory.STRUCT
+        pass
 
     def is_primitive(self) -> bool:
         """Check if this is a primitive type."""
-        return self.category == TypeCategory.PRIMITIVE
+        pass
 
     def is_integer(self) -> bool:
         """Check if this is an integer type."""
-        if self.category != TypeCategory.PRIMITIVE:
-            return False
-        return self.primitive in (
-            PrimitiveType.INT8,
-            PrimitiveType.INT16,
-            PrimitiveType.INT32,
-            PrimitiveType.INT64,
-            PrimitiveType.UINT8,
-            PrimitiveType.UINT16,
-            PrimitiveType.UINT32,
-            PrimitiveType.UINT64,
-        )
+        pass
 
     def is_float(self) -> bool:
         """Check if this is a floating point type."""
-        if self.category != TypeCategory.PRIMITIVE:
-            return False
-        return self.primitive in (PrimitiveType.FLOAT32, PrimitiveType.FLOAT64)
+        pass
 
     def get_deref_type(self) -> "TypeInfo | None":
         """Get the type when dereferenced."""
-        if self.category == TypeCategory.POINTER:
-            return self.pointee
-        if self.category == TypeCategory.ARRAY:
-            return self.element_type
-        return None
+        pass
 
 
 @dataclass
@@ -248,34 +231,11 @@ class TypeInference:
 
     def create_array_type(self, element_type: TypeInfo, count: int) -> TypeInfo:
         """Create an array type."""
-        return TypeInfo(
-            type_id=self._new_type_id(),
-            category=TypeCategory.ARRAY,
-            size=element_type.size * count,
-            alignment=element_type.alignment,
-            element_type=element_type,
-            element_count=count,
-            confidence=element_type.confidence * 0.9,
-        )
+        pass
 
     def create_struct_type(self, fields: list[tuple[str, TypeInfo, int]]) -> TypeInfo:
         """Create a struct type."""
-        total_size = 0
-        max_alignment = 1
-        for name, type_info, offset in fields:
-            if offset + type_info.size > total_size:
-                total_size = offset + type_info.size
-            if type_info.alignment > max_alignment:
-                max_alignment = type_info.alignment
-
-        return TypeInfo(
-            type_id=self._new_type_id(),
-            category=TypeCategory.STRUCT,
-            size=total_size,
-            alignment=max_alignment,
-            fields=fields,
-            confidence=0.8,
-        )
+        pass
 
     def infer_type(self, binary: Binary, address: int) -> TypeInfo:
         """
@@ -645,94 +605,11 @@ class TypeInference:
         Returns:
             Dictionary mapping function addresses to their parameter/return types
         """
-        functions = binary.get_functions()
-        function_types: dict[int, dict[str, TypeInfo]] = {}
-
-        arch_info = binary.get_arch_info()
-        arch = arch_info.get("arch", "x86").lower()
-        bits = arch_info.get("bits", 64)
-
-        calling_convention = self._get_calling_convention(arch, bits)
-
-        for func in functions:
-            func_addr = func.get("offset", func.get("addr", 0))
-            func_name = func.get("name", f"func_{func_addr:x}")
-
-            param_types: dict[str, TypeInfo] = {}
-
-            try:
-                disasm = binary.get_function_disasm(func_addr)
-                if disasm:
-                    param_types = self._infer_function_params(binary, func_addr, disasm, calling_convention)
-            except Exception as e:
-                logger.debug(f"Failed to infer params for {func_name}: {e}")
-
-            function_types[func_addr] = param_types
-
-        if call_graph:
-            self._propagate_through_calls(binary, call_graph, function_types, calling_convention)
-
-        return function_types
+        pass
 
     def _get_calling_convention(self, arch: str, bits: int) -> dict[str, Any]:
         """Get calling convention registers for architecture."""
-        if arch in ("x86", "amd64", "x86_64"):
-            if bits == 64:
-                return {
-                    "param_registers": ["rdi", "rsi", "rdx", "rcx", "r8", "r9"],
-                    "return_register": "rax",
-                    "callee_saved": ["rbx", "rbp", "r12", "r13", "r14", "r15"],
-                    "caller_saved": ["rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11"],
-                }
-            else:
-                return {
-                    "param_registers": [],
-                    "return_register": "eax",
-                    "callee_saved": ["ebx", "esi", "edi", "ebp"],
-                    "caller_saved": ["eax", "ecx", "edx"],
-                    "stack_params": True,
-                }
-        elif arch in ("arm", "arm32"):
-            return {
-                "param_registers": ["r0", "r1", "r2", "r3"],
-                "return_register": "r0",
-                "callee_saved": ["r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11"],
-                "caller_saved": ["r0", "r1", "r2", "r3", "r12", "lr"],
-            }
-        elif arch in ("arm64", "aarch64"):
-            return {
-                "param_registers": ["x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7"],
-                "return_register": "x0",
-                "callee_saved": ["x19", "x20", "x21", "x22", "x23", "x24", "x25", "x26", "x27", "x28"],
-                "caller_saved": [
-                    "x0",
-                    "x1",
-                    "x2",
-                    "x3",
-                    "x4",
-                    "x5",
-                    "x6",
-                    "x7",
-                    "x8",
-                    "x9",
-                    "x10",
-                    "x11",
-                    "x12",
-                    "x13",
-                    "x14",
-                    "x15",
-                    "x16",
-                    "x17",
-                    "x18",
-                ],
-            }
-
-        return {
-            "param_registers": [],
-            "return_register": "",
-            "callee_saved": [],
-            "caller_saved": [],
-        }
+        pass
 
     def _infer_function_params(
         self,
@@ -742,21 +619,7 @@ class TypeInference:
         calling_conv: dict[str, Any],
     ) -> dict[str, TypeInfo]:
         """Infer function parameter types from disassembly."""
-        param_types: dict[str, TypeInfo] = {}
-        param_regs = calling_conv.get("param_registers", [])
-
-        for insn in disasm[:20]:
-            disasm_str = insn.get("disasm", "").lower()
-
-            for i, reg in enumerate(param_regs):
-                reg_lower = reg.lower()
-                if reg_lower in disasm_str:
-                    if "mov" in disasm_str and "mem" not in disasm_str:
-                        param_types[f"param_{i}"] = self.create_primitive_type(PrimitiveType.INT64)
-                    elif "ldr" in disasm_str or "mov" in disasm_str:
-                        param_types[f"param_{i}"] = self.create_pointer_type()
-
-        return param_types
+        pass
 
     def _propagate_through_calls(
         self,
@@ -766,20 +629,7 @@ class TypeInference:
         calling_conv: dict[str, Any],
     ) -> None:
         """Propagate type information through call graph edges."""
-        calling_conv.get("return_register", "")
-
-        for caller_addr, callees in call_graph.items():
-            caller_types = function_types.get(caller_addr, {})
-
-            for callee_addr in callees:
-                callee_types = function_types.get(callee_addr, {})
-
-                for param_name, param_type in callee_types.items():
-                    if param_name not in caller_types:
-                        caller_types[param_name] = param_type
-
-        for func_addr, types in function_types.items():
-            self._address_types.update({func_addr + i: t for i, (n, t) in enumerate(types.items())})
+        pass
 
     def infer_arm_register_types(
         self,
@@ -803,58 +653,11 @@ class TypeInference:
         Returns:
             Dictionary mapping register names to TypeInfo
         """
-        arch_info = binary.get_arch_info()
-        arch = arch_info.get("arch", "arm").lower()
-        bits = arch_info.get("bits", 32)
-
-        register_types: dict[str, TypeInfo] = {}
-
-        reg_aliases = self._get_arm_register_aliases(arch, bits)
-
-        for insn in disasm:
-            disasm_str = insn.get("disasm", "").lower()
-
-            if arch in ("arm64", "aarch64"):
-                self._infer_arm64_register_types(disasm_str, register_types)
-            elif arch in ("arm", "arm32"):
-                self._infer_arm32_register_types(disasm_str, register_types)
-
-        self._propagate_arm_aliases(register_types, reg_aliases)
-
-        return register_types
+        pass
 
     def _get_arm_register_aliases(self, arch: str, bits: int) -> dict[str, list[str]]:
         """Get ARM register alias mappings."""
-        aliases: dict[str, list[str]] = {}
-
-        if arch in ("arm64", "aarch64"):
-            for i in range(32):
-                aliases[f"x{i}"] = [f"w{i}", f"x{i}"]
-                aliases[f"w{i}"] = [f"w{i}", f"x{i}"]
-
-            aliases["x29"] = ["fp", "x29"]
-            aliases["x30"] = ["lr", "x30"]
-            aliases["sp"] = ["sp", "x31"]
-
-            for i in range(32):
-                aliases[f"v{i}.d"] = [f"d{i}", f"v{i}"]
-                aliases[f"v{i}.s"] = [f"s{2 * i}", f"v{i}"]
-                aliases[f"v{i}.b"] = [f"b{4 * i}", f"v{i}"]
-
-        elif arch in ("arm", "arm32"):
-            for i in range(16):
-                aliases[f"r{i}"] = [f"r{i}"]
-
-            aliases["fp"] = ["r11", "fp"]
-            aliases["ip"] = ["r12", "ip"]
-            aliases["sp"] = ["r13", "sp"]
-            aliases["lr"] = ["r14", "lr"]
-            aliases["pc"] = ["r15", "pc"]
-
-            aliases["s0"] = ["s0", "d0_lower"]
-            aliases["d0"] = ["d0", "s0", "s1"]
-
-        return aliases
+        pass
 
     def _infer_arm64_register_types(
         self,
@@ -862,53 +665,7 @@ class TypeInference:
         register_types: dict[str, TypeInfo],
     ) -> None:
         """Infer types for ARM64 registers from instruction."""
-        if "ldr" in disasm_str:
-            import re
-
-            match = re.search(r"ldr\s+(\w+)", disasm_str)
-            if match:
-                reg = match.group(1).lower()
-                if reg.startswith("x") or reg.startswith("w"):
-                    register_types[reg] = self.create_pointer_type()
-                elif reg.startswith("d") or reg.startswith("s"):
-                    register_types[reg] = self.create_primitive_type(PrimitiveType.FLOAT64)
-
-        elif "str" in disasm_str:
-            import re
-
-            match = re.search(r"str\s+(\w+)", disasm_str)
-            if match:
-                reg = match.group(1).lower()
-                if reg not in register_types:
-                    register_types[reg] = self.create_primitive_type(PrimitiveType.UINT64)
-
-        elif "mov" in disasm_str:
-            import re
-
-            match = re.search(r"mov\s+(\w+)\s*,\s*(\w+)", disasm_str)
-            if match:
-                dest, src = match.group(1).lower(), match.group(2).lower()
-                if src.startswith("#"):
-                    register_types[dest] = self.create_primitive_type(PrimitiveType.INT64)
-                elif src in register_types:
-                    register_types[dest] = register_types[src]
-
-        elif "fmov" in disasm_str:
-            import re
-
-            match = re.search(r"fmov\s+(\w+)", disasm_str)
-            if match:
-                reg = match.group(1).lower()
-                register_types[reg] = self.create_primitive_type(PrimitiveType.FLOAT64)
-
-        elif "add" in disasm_str or "sub" in disasm_str:
-            import re
-
-            match = re.search(r"(add|sub)\s+(\w+)", disasm_str)
-            if match:
-                reg = match.group(2).lower()
-                if reg not in register_types:
-                    register_types[reg] = self.create_primitive_type(PrimitiveType.INT64)
+        pass
 
     def _infer_arm32_register_types(
         self,
@@ -916,38 +673,7 @@ class TypeInference:
         register_types: dict[str, TypeInfo],
     ) -> None:
         """Infer types for ARM32 registers from instruction."""
-        if "ldr" in disasm_str:
-            import re
-
-            match = re.search(r"ldr\s+(\w+)", disasm_str)
-            if match:
-                reg = match.group(1).lower()
-                if reg.startswith("r"):
-                    register_types[reg] = self.create_pointer_type()
-                elif reg.startswith("s"):
-                    register_types[reg] = self.create_primitive_type(PrimitiveType.FLOAT32)
-                elif reg.startswith("d"):
-                    register_types[reg] = self.create_primitive_type(PrimitiveType.FLOAT64)
-
-        elif "str" in disasm_str:
-            import re
-
-            match = re.search(r"str\s+(\w+)", disasm_str)
-            if match:
-                reg = match.group(1).lower()
-                if reg not in register_types:
-                    register_types[reg] = self.create_primitive_type(PrimitiveType.UINT32)
-
-        elif "mov" in disasm_str:
-            import re
-
-            match = re.search(r"mov\s+(\w+)\s*,\s*(\w+)", disasm_str)
-            if match:
-                dest, src = match.group(1).lower(), match.group(2).lower()
-                if src.startswith("#"):
-                    register_types[dest] = self.create_primitive_type(PrimitiveType.INT32)
-                elif src in register_types:
-                    register_types[dest] = register_types[src]
+        pass
 
     def _propagate_arm_aliases(
         self,
@@ -955,19 +681,7 @@ class TypeInference:
         aliases: dict[str, list[str]],
     ) -> None:
         """Propagate type information through register aliases."""
-        for primary_reg, alias_list in aliases.items():
-            if primary_reg in register_types:
-                type_info = register_types[primary_reg]
-                for alias in alias_list:
-                    if alias not in register_types:
-                        register_types[alias] = type_info
-
-        for primary_reg, alias_list in aliases.items():
-            if primary_reg not in register_types:
-                for alias in alias_list:
-                    if alias in register_types:
-                        register_types[primary_reg] = register_types[alias]
-                        break
+        pass
 
     def get_struct_layout(self, binary: Binary, address: int) -> list[StructField] | None:
         """
@@ -980,36 +694,11 @@ class TypeInference:
         Returns:
             List of StructField if struct is detected, None otherwise
         """
-        fields: list[StructField] = []
-
-        try:
-            xrefs = binary.r2.cmdj(f"axtj @ {address}") if binary.r2 else []
-        except Exception:
-            xrefs = []
-
-        if not xrefs:
-            return None
-
-        for xref in xrefs:
-            offset = xref.get("offset", 0) if isinstance(xref, dict) else 0
-            access_type = self._infer_access_type(binary, xref if isinstance(xref, dict) else {})
-
-            if access_type:
-                fields.append(
-                    StructField(
-                        name=f"field_{offset:x}",
-                        offset=offset,
-                        type_info=access_type,
-                    )
-                )
-
-        fields.sort(key=lambda f: f.offset)
-
-        return fields if fields else None
+        pass
 
     def _infer_access_type(self, binary: Binary, xref: dict) -> TypeInfo | None:
         """Infer the type of a memory access."""
-        return self.create_primitive_type(PrimitiveType.UINT64)
+        pass
 
     def get_value_range(self, binary: Binary, address: int) -> tuple[int, int] | None:
         """
@@ -1022,20 +711,7 @@ class TypeInference:
         Returns:
             Tuple of (min, max) if determinable, None otherwise
         """
-        type_info = self.infer_type(binary, address)
-
-        if type_info.is_integer():
-            size = type_info.size
-            if size == 1:
-                return (0, 255)
-            if size == 2:
-                return (0, 65535)
-            if size == 4:
-                return (0, 2**32 - 1)
-            if size == 8:
-                return (0, 2**64 - 1)
-
-        return None
+        pass
 
     def is_safe_to_mutate(self, binary: Binary, address: int, mutation_type: str) -> tuple[bool, str]:
         """
@@ -1049,17 +725,7 @@ class TypeInference:
         Returns:
             Tuple of (is_safe, reason)
         """
-        type_info = self.infer_type(binary, address)
-
-        if mutation_type == "register_substitution":
-            if type_info.is_pointer():
-                return (False, "Register holds pointer - unsafe to substitute")
-
-        if mutation_type == "instruction_expansion":
-            if type_info.is_pointer():
-                return (False, "Pointer arithmetic - expansion may break semantics")
-
-        return (True, "Safe to mutate")
+        pass
 
 
 class PointerAnalysis:
@@ -1080,67 +746,23 @@ class PointerAnalysis:
 
     def compute_aliases(self, binary: Binary) -> None:
         """Compute pointer alias information."""
-        functions = binary.get_functions()
-
-        for func in functions:
-            func_addr = func.get("offset", func.get("addr", 0))
-            self._analyze_function_pointers(binary, func_addr)
-
-        self._compute_transitive_aliases()
+        pass
 
     def _analyze_function_pointers(self, binary: Binary, func_addr: int) -> None:
         """Analyze pointers in a function."""
-        disasm = binary.get_function_disasm(func_addr)
-        if not disasm:
-            return
-
-        for insn in disasm:
-            self._extract_pointer_use(binary, insn)
+        pass
 
     def _extract_pointer_use(self, binary: Binary, insn: dict) -> None:
         """Extract pointer use from instruction."""
-        disasm = insn.get("disasm", "").lower()
-        addr = insn.get("offset", 0)
-
-        if "lea" in disasm:
-            target = self._extract_lea_target(disasm)
-            if target:
-                if addr not in self._points_to:
-                    self._points_to[addr] = set()
-                self._points_to[addr].add(target)
+        pass
 
     def _extract_lea_target(self, disasm: str) -> int | None:
         """Extract LEA target from disassembly."""
-        parts = disasm.split("[")
-        if len(parts) < 2:
-            return None
-
-        bracket_content = parts[1].split("]")[0]
-        if bracket_content.startswith("0x"):
-            try:
-                return int(bracket_content, 16)
-            except ValueError:
-                # Not a parseable numeric literal here (e.g. register/symbolic operand); expected, so this candidate is skipped.
-                pass
-
-        return None
+        pass
 
     def _compute_transitive_aliases(self) -> None:
         """Compute transitive alias closure."""
-        for addr in self._points_to:
-            self._aliases[addr] = set(self._points_to[addr])
-
-        changed = True
-        while changed:
-            changed = False
-            for addr, aliases in list(self._aliases.items()):
-                new_aliases = set(aliases)
-                for alias in aliases:
-                    if alias in self._aliases:
-                        new_aliases.update(self._aliases[alias])
-                if new_aliases != aliases:
-                    self._aliases[addr] = new_aliases
-                    changed = True
+        pass
 
     def get_points_to(self, address: int) -> set[int]:
         """
@@ -1152,7 +774,7 @@ class PointerAnalysis:
         Returns:
             Set of possible target addresses
         """
-        return self._points_to.get(address, set())
+        pass
 
     def get_aliases(self, address: int) -> set[int]:
         """
@@ -1164,7 +786,7 @@ class PointerAnalysis:
         Returns:
             Set of alias addresses
         """
-        return self._aliases.get(address, set())
+        pass
 
     def may_alias(self, addr1: int, addr2: int) -> bool:
         """
@@ -1177,13 +799,7 @@ class PointerAnalysis:
         Returns:
             True if they may alias
         """
-        if addr1 == addr2:
-            return True
-
-        aliases1 = self.get_aliases(addr1)
-        aliases2 = self.get_aliases(addr2)
-
-        return bool(aliases1 & aliases2)
+        pass
 
 
 def infer_type(binary: Binary, address: int) -> TypeInfo:

@@ -31,9 +31,7 @@ def create_binary_reader(
     Returns:
         Configured BinaryReader instance
     """
-    from r2morph.core.reader import BinaryReader
-
-    return BinaryReader(r2)
+    pass
 
 
 def create_binary_writer(
@@ -52,9 +50,7 @@ def create_binary_writer(
     Returns:
         Configured BinaryWriter instance
     """
-    from r2morph.core.writer import BinaryWriter
-
-    return BinaryWriter(r2, path, writable)
+    pass
 
 
 def create_assembly_service() -> Any:
@@ -64,9 +60,7 @@ def create_assembly_service() -> Any:
     Returns:
         Configured AssemblyService instance
     """
-    from r2morph.core.assembly import get_assembly_service
-
-    return get_assembly_service()
+    pass
 
 
 def create_memory_manager(
@@ -83,9 +77,7 @@ def create_memory_manager(
     Returns:
         Configured MemoryManager instance
     """
-    from r2morph.core.memory_manager import get_memory_manager
-
-    return get_memory_manager()
+    pass
 
 
 def create_report_emitter(
@@ -100,44 +92,7 @@ def create_report_emitter(
     Returns:
         Dict with emit functions
     """
-    from r2morph.reporting.report_emitter import (
-        emit_report_payload,
-        enforce_report_requirements,
-    )
-
-    c = console or Console()
-
-    def emit(
-        filtered_payload: dict[str, Any],
-        output: Path | None,
-        summary_only: bool,
-    ) -> None:
-        return emit_report_payload(
-            filtered_payload=filtered_payload,
-            output=output,
-            summary_only=summary_only,
-            console_instance=c,
-        )
-
-    def enforce(
-        require_results: bool,
-        severity_rows: list[dict[str, Any]],
-        min_severity_rank: int | None,
-        mutation_count: int,
-        **kwargs: Any,
-    ) -> None:
-        return enforce_report_requirements(
-            require_results=require_results,
-            severity_rows=severity_rows,
-            min_severity_rank=min_severity_rank,
-            mutation_count=mutation_count,
-            **kwargs,
-        )
-
-    return {
-        "emit": emit,
-        "enforce": enforce,
-    }
+    pass
 
 
 def create_console_renderer(
@@ -152,76 +107,7 @@ def create_console_renderer(
     Returns:
         Dict with render functions
     """
-    from r2morph.reporting.report_rendering import (
-        render_pass_capabilities,
-        render_pass_validation_contexts,
-        render_symbolic_sections,
-        render_gate_sections,
-        render_degradation_sections,
-        render_only_mismatches_sections,
-        render_only_pass_sections,
-        render_report_filter_messages,
-        render_summary_table,
-        render_gate_evaluation_sections,
-        render_general_report_sections,
-        render_general_only_pass_sections,
-        render_mismatch_summary_sections,
-        render_validation_context_table,
-    )
-
-    c = console or Console()
-
-    def render_capabilities(capabilities: list[dict[str, Any]]) -> None:
-        return render_pass_capabilities(capabilities, console=c)
-
-    def render_contexts(contexts: list[dict[str, Any]]) -> None:
-        return render_pass_validation_contexts(contexts, console=c)
-
-    def render_symbolic(
-        requested: int,
-        match: int,
-        mismatch: int,
-        bounded: int,
-        without_coverage: int,
-    ) -> None:
-        return render_symbolic_sections(
-            requested,
-            match,
-            mismatch,
-            bounded,
-            without_coverage,
-            console=c,
-        )
-
-    def render_gate(summary: dict[str, Any], priority: list[dict[str, Any]]) -> None:
-        return render_gate_sections(summary, priority, console=c)
-
-    def render_degradation(summary: dict[str, Any]) -> None:
-        return render_degradation_sections(summary, console=c)
-
-    def render_summary(summary: dict[str, Any]) -> None:
-        return render_summary_table(summary, console=c)
-
-    return {
-        "render_pass_capabilities": render_capabilities,
-        "render_pass_validation_contexts": render_contexts,
-        "render_symbolic_sections": render_symbolic,
-        "render_gate_sections": render_gate,
-        "render_degradation_sections": render_degradation,
-        "render_summary_table": render_summary,
-        "render_only_mismatches_sections": lambda rows: render_only_mismatches_sections(rows, console=c),
-        "render_only_pass_sections": lambda name, data: render_only_pass_sections(name, data, console=c),
-        "render_report_filter_messages": lambda *args, **kw: render_report_filter_messages(*args, console=c, **kw),
-        "render_gate_evaluation_sections": lambda *args, **kw: render_gate_evaluation_sections(*args, console=c, **kw),
-        "render_general_report_sections": lambda *args, **kw: render_general_report_sections(*args, console=c, **kw),
-        "render_general_only_pass_sections": lambda *args, **kw: render_general_only_pass_sections(
-            *args, console=c, **kw
-        ),
-        "render_mismatch_summary_sections": lambda *args, **kw: render_mismatch_summary_sections(
-            *args, console=c, **kw
-        ),
-        "render_validation_context_table": lambda *args, **kw: render_validation_context_table(*args, console=c, **kw),
-    }
+    pass
 
 
 def create_gate_evaluator() -> type:
@@ -231,9 +117,7 @@ def create_gate_evaluator() -> type:
     Returns:
         GateEvaluator class (stateless, can be reused)
     """
-    from r2morph.reporting.gate_evaluator import GateEvaluator
-
-    return GateEvaluator
+    pass
 
 
 def create_summary_aggregator() -> Any:
@@ -243,9 +127,7 @@ def create_summary_aggregator() -> Any:
     Returns:
         SummaryAggregator instance
     """
-    from r2morph.reporting.summary_aggregator import SummaryAggregator
-
-    return SummaryAggregator()
+    pass
 
 
 def create_symbolic_aggregator() -> type:
@@ -255,9 +137,7 @@ def create_symbolic_aggregator() -> type:
     Returns:
         SymbolicAggregator class (stateless, can be reused)
     """
-    from r2morph.reporting.summary_aggregator import SymbolicAggregator
-
-    return SymbolicAggregator
+    pass
 
 
 def create_evidence_aggregator() -> type:
@@ -267,9 +147,7 @@ def create_evidence_aggregator() -> type:
     Returns:
         EvidenceAggregator class (stateless, can be reused)
     """
-    from r2morph.reporting.summary_aggregator import EvidenceAggregator
-
-    return EvidenceAggregator
+    pass
 
 
 def create_report_builder() -> type:
@@ -279,9 +157,7 @@ def create_report_builder() -> type:
     Returns:
         ReportBuilder class (stateless, can be reused)
     """
-    from r2morph.reporting.report_builder import ReportBuilder
-
-    return ReportBuilder
+    pass
 
 
 def create_pass_filter_resolver() -> type:
@@ -291,9 +167,7 @@ def create_pass_filter_resolver() -> type:
     Returns:
         PassFilterResolver class (stateless, can be reused)
     """
-    from r2morph.reporting.report_filters import PassFilterResolver
-
-    return PassFilterResolver
+    pass
 
 
 def create_report_filters() -> type:
@@ -303,9 +177,7 @@ def create_report_filters() -> type:
     Returns:
         ReportFilters class (stateless, can be reused)
     """
-    from r2morph.reporting.report_filters import ReportFilters
-
-    return ReportFilters
+    pass
 
 
 __all__ = [

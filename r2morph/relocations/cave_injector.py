@@ -382,36 +382,7 @@ class CodeCaveInjector:
         Returns:
             CodeCaveAllocation or None
         """
-        sections = self.binary.get_sections()
-        target_section = None
-
-        for section in sections:
-            if section.get("name") == section_name:
-                target_section = section
-                break
-
-        if not target_section:
-            logger.warning(f"Section {section_name} not found")
-            return None
-
-        section_addr = target_section.get("vaddr", 0)
-        section_size = target_section.get("vsize", 0)
-
-        new_space_addr = section_addr + section_size
-        aligned_addr = self._align_address(new_space_addr, self.DEFAULT_ALIGNMENT)
-
-        allocation = CodeCaveAllocation(
-            address=aligned_addr,
-            size=additional_size,
-            cave_type=CaveType.EXTENDED_SECTION,
-            section_name=section_name,
-            alignment=self.DEFAULT_ALIGNMENT,
-            metadata={"original_section_size": section_size},
-        )
-
-        self._allocations.append(allocation)
-        logger.info(f"Planned extension of {section_name} by {additional_size} bytes")
-        return allocation
+        pass
 
     def insert_code(
         self,
@@ -486,20 +457,19 @@ class CodeCaveInjector:
 
     def get_allocations(self) -> list[CodeCaveAllocation]:
         """Get all allocations made."""
-        return self._allocations.copy()
+        pass
 
     def get_total_injected_size(self) -> int:
         """Get total size of all injected code."""
-        return sum(a.size for a in self._allocations)
+        pass
 
     def get_created_sections(self) -> dict[str, int]:
         """Get addresses of created sections."""
-        return self._created_sections.copy()
+        pass
 
     def clear_allocations(self) -> None:
         """Clear all allocation tracking."""
-        self._allocations.clear()
-        self._created_sections.clear()
+        pass
 
     def inject_with_trampolines(
         self,
@@ -520,39 +490,7 @@ class CodeCaveInjector:
         Returns:
             CodeCaveAllocation or None
         """
-        arch_info = self.binary.get_arch_info()
-        arch = arch_info.get("arch", "")
-        bits = arch_info.get("bits", 64)
-
-        allocation = self.insert_code(
-            code_bytes,
-            preferred_section=preferred_section,
-            allow_section_creation=True,
-        )
-
-        if not allocation:
-            return None
-
-        trampolines_written = 0
-        for i, site in enumerate(trampoline_sites):
-            if i >= len(original_destinations):
-                break
-
-            dest = original_destinations[i]
-            jmp_bytes = self._create_trampoline_jump(site, dest, arch, bits)
-
-            if jmp_bytes:
-                if self.binary.write_bytes(site, jmp_bytes):
-                    trampolines_written += 1
-                    logger.debug(f"Wrote trampoline at 0x{site:x} -> 0x{dest:x}")
-                else:
-                    logger.warning(f"Failed to write trampoline at 0x{site:x}")
-
-        if trampolines_written < len(trampoline_sites):
-            logger.warning(f"Only wrote {trampolines_written}/{len(trampoline_sites)} trampolines")
-
-        allocation.metadata["trampolines_written"] = trampolines_written
-        return allocation
+        pass
 
     def _create_trampoline_jump(self, from_addr: int, to_addr: int, arch: str, bits: int) -> bytes | None:
         """
@@ -567,16 +505,4 @@ class CodeCaveInjector:
         Returns:
             Jump instruction bytes or None if jump is out of range
         """
-        if "x86" in arch or arch == "x86_64":
-            relative_offset = to_addr - (from_addr + 5)
-
-            # Validate that offset fits in signed 32-bit integer
-            if relative_offset < -2147483648 or relative_offset > 2147483647:
-                logger.error(
-                    f"Jump offset out of range: from=0x{from_addr:x} to=0x{to_addr:x}, offset={relative_offset}"
-                )
-                return None
-
-            return b"\xe9" + relative_offset.to_bytes(4, "little", signed=True)
-
-        return None
+        pass

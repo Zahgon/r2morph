@@ -74,7 +74,7 @@ class MobileBlock:
 
     def get_jump_size(self) -> int:
         """Estimate jump instruction size for relocation."""
-        return 5
+        pass
 
 
 @dataclass
@@ -201,39 +201,15 @@ class CodeMobilityPass(MutationPass):
 
     def _generate_trampoline(self, target_addr: int, section_name: str) -> str:
         """Generate trampoline code to jump to mobile section."""
-        return f"""
-; Trampoline to {section_name}
-jmp_mobile_{target_addr:08x}:
-    jmp target_{target_addr:08x}
-"""
+        pass
 
     def _generate_section_header(self, section_name: str, section_idx: int) -> str:
         """Generate section header assembly."""
-        return f"""
-; ========================================
-; Mobile section {section_idx}: {section_name}
-; Contains relocated code blocks
-; ========================================
-section {section_name} align=16
-{section_name}_start:
-"""
+        pass
 
     def _generate_block_code(self, block: MobileBlock, original_section: str) -> str:
         """Generate assembly for a mobile block."""
-        lines = [
-            "",
-            f"block_{block.block_id:04x}:",
-            f"    ; Original: 0x{block.original_address:08x} in {original_section}",
-            f"    ; Size: {block.size} bytes",
-        ]
-
-        for succ_addr in block.successors:
-            lines.append(f"    jmp block_{succ_addr:04x}  ; successor")
-
-        lines.append(f"    ; End block_{block.block_id:04x}")
-        lines.append("")
-
-        return "\n".join(lines)
+        pass
 
     def _interleave_blocks(self, blocks: list[MobileBlock], seed: int | None = None) -> list[MobileBlock]:
         """Interleave blocks from different functions."""

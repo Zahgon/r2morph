@@ -145,12 +145,7 @@ def get_arm_expansion_rules(arch: str, bits: int) -> dict:
     Returns:
         Dict of expansion patterns
     """
-    if "aarch64" in arch.lower() or bits == 64:
-        return ARM64_EXPANSION_PATTERNS
-    elif "thumb" in arch.lower():
-        return ARM_THUMB_EXPANSION_PATTERNS
-    else:
-        return ARM32_EXPANSION_PATTERNS
+    pass
 
 
 ARM64_CALLING_CONVENTION = {
@@ -201,7 +196,4 @@ def get_arm_calling_convention(arch: str, bits: int) -> dict:
     Returns:
         Calling convention dict
     """
-    if "aarch64" in arch.lower() or bits == 64:
-        return ARM64_CALLING_CONVENTION
-    else:
-        return ARM32_CALLING_CONVENTION
+    pass

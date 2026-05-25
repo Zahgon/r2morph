@@ -333,19 +333,7 @@ class DeadCodeInjectionPass(MutationPass):
         Returns:
             True if safe to inject after this instruction
         """
-        mnemonic = insn.get("mnemonic", "").lower()
-
-        if mnemonic in self.PADDING_INSTRUCTIONS:
-            return True
-
-        if index > 0:
-            prev_insn = instructions[index - 1]
-            prev_mnemonic = prev_insn.get("mnemonic", "").lower()
-
-            if prev_mnemonic in UNCONDITIONAL_TRANSFERS:
-                return mnemonic in self.PADDING_INSTRUCTIONS
-
-        return False
+        pass
 
     def _generate_dead_code_for_size(self, binary: Any, max_size: int, func_addr: int) -> bytes | None:
         """

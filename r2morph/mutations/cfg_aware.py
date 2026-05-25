@@ -239,7 +239,7 @@ class CFGAwareMutationPass(MutationPass):
         Returns:
             List of safe addresses
         """
-        return [addr for addr in addresses if not self.should_skip(addr)]
+        pass
 
     def get_exclusion_zones(self) -> list[AddressRange]:
         """
@@ -512,7 +512,7 @@ def create_cfg_aware_nop_pass(**kwargs: Any) -> CFGAwareNOPInsertion:
     Returns:
         CFGAwareNOPInsertion instance
     """
-    return CFGAwareNOPInsertion(**kwargs)
+    pass
 
 
 def create_cfg_aware_substitution_pass(**kwargs: Any) -> CFGAwareSubstitution:
@@ -525,4 +525,4 @@ def create_cfg_aware_substitution_pass(**kwargs: Any) -> CFGAwareSubstitution:
     Returns:
         CFGAwareSubstitution instance
     """
-    return CFGAwareSubstitution(**kwargs)
+    pass

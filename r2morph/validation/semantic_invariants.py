@@ -137,17 +137,11 @@ class SemanticInvariantRegistry:
 
     def _build_pass_index(self) -> None:
         """Build index of invariants by pass type."""
-        self._pass_invariants = {}
-        for inv in self._invariants.values():
-            for pass_type in inv.pass_types:
-                if pass_type not in self._pass_invariants:
-                    self._pass_invariants[pass_type] = []
-                self._pass_invariants[pass_type].append(inv.name)
+        pass
 
     def register_invariant(self, invariant: InvariantSpec) -> None:
         """Register a new invariant."""
-        self._invariants[invariant.name] = invariant
-        self._build_pass_index()
+        pass
 
     def get_invariants_for_pass(self, pass_type: str) -> list[InvariantSpec]:
         """Get all invariants that apply to a pass type."""
@@ -155,7 +149,7 @@ class SemanticInvariantRegistry:
 
     def get_required_invariants(self, pass_type: str) -> list[InvariantSpec]:
         """Get only required invariants for a pass type."""
-        return [inv for inv in self.get_invariants_for_pass(pass_type) if inv.check_required]
+        pass
 
 
 class StackBalanceChecker:
@@ -482,23 +476,4 @@ class SemanticInvariantChecker:
         Returns:
             Summary dictionary
         """
-        by_category: dict[str, int] = {}
-        by_severity: dict[str, int] = {}
-        critical_violations: list[dict[str, Any]] = []
-
-        for v in violations:
-            cat = v.category.value
-            sev = v.severity.value
-            by_category[cat] = by_category.get(cat, 0) + 1
-            by_severity[sev] = by_severity.get(sev, 0) + 1
-
-            if v.severity == InvariantSeverity.CRITICAL:
-                critical_violations.append(v.to_dict())
-
-        return {
-            "total_violations": len(violations),
-            "by_category": by_category,
-            "by_severity": by_severity,
-            "critical_violations": critical_violations,
-            "passed": len(critical_violations) == 0 and len(violations) == 0,
-        }
+        pass

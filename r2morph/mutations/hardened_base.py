@@ -286,9 +286,7 @@ class HardenedMutationPass(CFGAwareMutationPass):
         Returns:
             PreservedPattern if found, None otherwise
         """
-        if self._preservation_manager:
-            return self._preservation_manager.get_pattern_at(address)
-        return None
+        pass
 
     def get_exclusion_zones_for_type(self, pattern_type: PatternType) -> list[Any]:
         """
@@ -300,9 +298,7 @@ class HardenedMutationPass(CFGAwareMutationPass):
         Returns:
             List of exclusion zones
         """
-        if self._preservation_manager:
-            return self._preservation_manager.get_exclusion_zones_for_type(pattern_type)
-        return []
+        pass
 
 
 class HardenedControlFlowFlattening(HardenedMutationPass):

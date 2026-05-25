@@ -396,8 +396,7 @@ class CriticalNodeDetector:
         Returns:
             Critical node type or None if not critical
         """
-        node = self._critical_nodes.get(address)
-        return node.node_type if node else None
+        pass
 
     def get_nearby_critical_nodes(self, address: int, radius: int = 16) -> list[CriticalNode]:
         """
@@ -410,13 +409,7 @@ class CriticalNodeDetector:
         Returns:
             List of nearby CriticalNode instances
         """
-        nearby: list[CriticalNode] = []
-
-        for addr, node in self._critical_nodes.items():
-            if abs(addr - address) <= radius:
-                nearby.append(node)
-
-        return nearby
+        pass
 
 
 class MutationSafetyScorer:
@@ -524,16 +517,7 @@ class MutationSafetyScorer:
         Returns:
             Dictionary mapping addresses to safety scores
         """
-        if critical_nodes is None:
-            detector = CriticalNodeDetector(cfg)
-            critical_nodes = detector.find_all_critical_nodes()
-
-        scores: dict[int, float] = {}
-
-        for addr in cfg.blocks:
-            scores[addr] = self.score_address(addr, cfg, critical_nodes)
-
-        return scores
+        pass
 
 
 def create_exclusion_zones(

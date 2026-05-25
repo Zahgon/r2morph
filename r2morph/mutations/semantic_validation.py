@@ -34,13 +34,7 @@ class ValidationResult:
     issues: list[ValidationIssue] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    @property
-    def errors(self) -> list[ValidationIssue]:
-        return [i for i in self.issues if i.severity == ValidationSeverity.ERROR]
 
-    @property
-    def warnings(self) -> list[ValidationIssue]:
-        return [i for i in self.issues if i.severity == ValidationSeverity.WARNING]
 
     def add_error(self, code: str, message: str, address: int = 0, **details: Any) -> None:
         self.issues.append(ValidationIssue(code, ValidationSeverity.ERROR, message, address, details))
@@ -325,79 +319,7 @@ class SemanticValidator:
         Returns:
             ValidationResult
         """
-        result = ValidationResult(valid=True)
-
-        if not junk_instructions:
-            return result
-
-        registers_written: set[str] = set()
-        registers_read: set[str] = set()
-        has_unsafe: bool = False
-
-        for idx, ins in enumerate(junk_instructions):
-            mnemonic = self._get_mnemonic(ins)
-            address = self._get_address(ins)
-
-            if mnemonic in self.UNSAFE_OPCODES:
-                has_unsafe = True
-                result.add_error(
-                    "JUNK_UNSAFE_OPCODE",
-                    f"Junk code contains unsafe opcode: {mnemonic}",
-                    address,
-                    mnemonic=mnemonic,
-                )
-
-            op1 = self._get_operand(ins, 0)
-            op2 = self._get_operand(ins, 1)
-            op3 = self._get_operand(ins, 2)
-
-            for op in [op1, op2, op3]:
-                if isinstance(op, str):
-                    op_lower = op.lower().strip("[]")
-                    if op_lower in self.ALL_REGISTERS_64:
-                        if op.startswith("["):
-                            pass
-                        elif mnemonic in (
-                            "mov",
-                            "lea",
-                            "pop",
-                            "inc",
-                            "dec",
-                            "add",
-                            "sub",
-                            "xor",
-                            "and",
-                            "or",
-                            "shl",
-                            "shr",
-                            "rol",
-                            "ror",
-                        ):
-                            if op == op1:
-                                registers_written.add(op_lower)
-                            else:
-                                registers_read.add(op_lower)
-                        elif mnemonic in self.PUSH_OPCODES:
-                            pass
-                        elif mnemonic in self.POP_OPCODES:
-                            pass
-
-            if mnemonic in ("mov", "lea", "add", "sub", "xor", "and", "or", "cmp", "test"):
-                for op in [op2, op3]:
-                    if isinstance(op, str) and "[" in op:
-                        result.add_warning(
-                            "JUNK_MEMORY_ACCESS",
-                            f"Junk code accesses memory: {mnemonic}",
-                            address,
-                        )
-
-        if has_unsafe:
-            result.valid = False
-
-        result.metadata["registers_written"] = list(registers_written)
-        result.metadata["registers_read"] = list(registers_read)
-
-        return result
+        pass
 
     def _validate_control_flow(
         self,

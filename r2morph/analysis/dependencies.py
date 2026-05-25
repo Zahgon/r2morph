@@ -72,67 +72,7 @@ class DependencyAnalyzer:
         Returns:
             Tuple of (defines, uses) sets
         """
-        defines: set[str] = set()
-        uses: set[str] = set()
-
-        disasm = instruction.get("disasm", "").lower()
-
-        parts = disasm.split()
-        if len(parts) < 2:
-            return defines, uses
-
-        mnemonic = parts[0]
-        operands_str = " ".join(parts[1:])
-        operands = [op.strip() for op in operands_str.split(",")]
-
-        if mnemonic in ["mov", "movzx", "movsx", "lea"]:
-            if len(operands) >= 2:
-                defines.add(operands[0])
-                uses.update(operands[1:])
-
-        elif mnemonic in ["add", "sub", "and", "or", "xor", "imul", "mul"]:
-            if len(operands) >= 1:
-                defines.add(operands[0])
-                uses.add(operands[0])
-            if len(operands) >= 2:
-                uses.update(operands[1:])
-
-        elif mnemonic in ["inc", "dec", "neg", "not"]:
-            if operands:
-                defines.add(operands[0])
-                uses.add(operands[0])
-
-        elif mnemonic in ["push"]:
-            if operands:
-                uses.add(operands[0])
-            uses.add("rsp")
-            defines.add("rsp")
-
-        elif mnemonic in ["pop"]:
-            if operands:
-                defines.add(operands[0])
-            uses.add("rsp")
-            defines.add("rsp")
-
-        elif mnemonic in ["call"]:
-            defines.update(["rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11"])
-            uses.update(["rdi", "rsi", "rdx", "rcx", "r8", "r9"])
-
-        elif mnemonic in ["ret"]:
-            uses.add("rax")
-            uses.add("rsp")
-
-        elif mnemonic.startswith("j"):
-            pass
-
-        elif mnemonic in ["cmp", "test"]:
-            uses.update(operands)
-            defines.add("flags")
-
-        defines = {d for d in defines if self._is_register(d)}
-        uses = {u for u in uses if self._is_register(u)}
-
-        return defines, uses
+        pass
 
     def _is_register(self, operand: str) -> bool:
         """
@@ -144,42 +84,7 @@ class DependencyAnalyzer:
         Returns:
             True if it's a register
         """
-        register_prefixes = [
-            "rax",
-            "rbx",
-            "rcx",
-            "rdx",
-            "rsi",
-            "rdi",
-            "rbp",
-            "rsp",
-            "eax",
-            "ebx",
-            "ecx",
-            "edx",
-            "esi",
-            "edi",
-            "ebp",
-            "esp",
-            "r8",
-            "r9",
-            "r10",
-            "r11",
-            "r12",
-            "r13",
-            "r14",
-            "r15",
-            "ax",
-            "bx",
-            "cx",
-            "dx",
-            "al",
-            "bl",
-            "cl",
-            "dl",
-        ]
-
-        return any(operand.startswith(prefix) for prefix in register_prefixes)
+        pass
 
     def analyze_dependencies(self, instructions: list[dict[str, Any]]) -> list[Dependency]:
         """
@@ -191,64 +96,7 @@ class DependencyAnalyzer:
         Returns:
             List of dependencies found
         """
-        self.dependencies = []
-        self.defs = {}
-
-        last_def: dict[str, int] = {}
-        last_use: dict[str, int] = {}
-
-        for insn in instructions:
-            addr = insn.get("offset", 0)
-
-            defines, uses = self._parse_operands(insn)
-
-            self.defs[addr] = InstructionDef(address=addr, defines=defines, uses=uses)
-
-            for reg in uses:
-                if reg in last_def:
-                    dep = Dependency(
-                        from_address=last_def[reg],
-                        to_address=addr,
-                        resource=reg,
-                        dep_type=DependencyType.READ_AFTER_WRITE,
-                    )
-                    self.dependencies.append(dep)
-
-                if reg in last_use:
-                    dep = Dependency(
-                        from_address=last_use[reg],
-                        to_address=addr,
-                        resource=reg,
-                        dep_type=DependencyType.READ_AFTER_READ,
-                    )
-                    self.dependencies.append(dep)
-
-                last_use[reg] = addr
-
-            for reg in defines:
-                if reg in last_use:
-                    dep = Dependency(
-                        from_address=last_use[reg],
-                        to_address=addr,
-                        resource=reg,
-                        dep_type=DependencyType.WRITE_AFTER_READ,
-                    )
-                    self.dependencies.append(dep)
-
-                if reg in last_def:
-                    dep = Dependency(
-                        from_address=last_def[reg],
-                        to_address=addr,
-                        resource=reg,
-                        dep_type=DependencyType.WRITE_AFTER_WRITE,
-                    )
-                    self.dependencies.append(dep)
-
-                last_def[reg] = addr
-
-        logger.debug(f"Found {len(self.dependencies)} dependencies in {len(instructions)} instructions")
-
-        return self.dependencies
+        pass
 
     def get_dependencies_for_instruction(self, address: int) -> list[Dependency]:
         """
@@ -260,7 +108,7 @@ class DependencyAnalyzer:
         Returns:
             List of dependencies
         """
-        return [dep for dep in self.dependencies if dep.from_address == address or dep.to_address == address]
+        pass
 
     def has_dependency(self, from_addr: int, to_addr: int) -> bool:
         """
@@ -273,7 +121,7 @@ class DependencyAnalyzer:
         Returns:
             True if dependency exists
         """
-        return any(dep.from_address == from_addr and dep.to_address == to_addr for dep in self.dependencies)
+        pass
 
     def get_dependency_chain(self, start_addr: int) -> list[int]:
         """
@@ -285,28 +133,7 @@ class DependencyAnalyzer:
         Returns:
             List of instruction addresses in dependency order
         """
-        chain = [start_addr]
-        visited = {start_addr}
-
-        current = start_addr
-        while True:
-            next_deps = [
-                dep
-                for dep in self.dependencies
-                if dep.from_address == current
-                and dep.dep_type == DependencyType.READ_AFTER_WRITE
-                and dep.to_address not in visited
-            ]
-
-            if not next_deps:
-                break
-
-            next_dep = next_deps[0]
-            chain.append(next_dep.to_address)
-            visited.add(next_dep.to_address)
-            current = next_dep.to_address
-
-        return chain
+        pass
 
     def to_dot(self) -> str:
         """
@@ -315,28 +142,4 @@ class DependencyAnalyzer:
         Returns:
             DOT format string
         """
-        lines = [
-            "digraph Dependencies {",
-            "  node [shape=box];",
-            "",
-        ]
-
-        for addr in self.defs:
-            lines.append(f'  "0x{addr:x}" [label="0x{addr:x}"];')
-
-        for dep in self.dependencies:
-            if dep.dep_type == DependencyType.READ_AFTER_WRITE:
-                color = "red"
-            elif dep.dep_type == DependencyType.WRITE_AFTER_READ:
-                color = "blue"
-            elif dep.dep_type == DependencyType.WRITE_AFTER_WRITE:
-                color = "green"
-            else:
-                color = "gray"
-
-            lines.append(
-                f'  "0x{dep.from_address:x}" -> "0x{dep.to_address:x}" ' f'[label="{dep.resource}", color={color}];'
-            )
-
-        lines.append("}")
-        return "\n".join(lines)
+        pass

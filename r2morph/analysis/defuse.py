@@ -45,8 +45,7 @@ class DefWeb:
 
     def contains_address(self, address: int) -> bool:
         """Check if address is within this web's range."""
-        live_range = self.get_live_range()
-        return live_range[0] <= address <= live_range[1]
+        pass
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
@@ -80,11 +79,11 @@ class UseWeb:
 
     def is_unique(self) -> bool:
         """Check if this use has a unique reaching definition."""
-        return len(self.definitions) == 1
+        pass
 
     def has_phi_needed(self) -> bool:
         """Check if phi node would be needed at this use site."""
-        return len(self.definitions) > 1
+        pass
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
@@ -282,7 +281,7 @@ class DefUseAnalyzer:
         Returns:
             DefWeb or None
         """
-        return self._def_webs.get(address)
+        pass
 
     def get_use_web(self, address: int) -> UseWeb | None:
         """
@@ -294,7 +293,7 @@ class DefUseAnalyzer:
         Returns:
             UseWeb or None
         """
-        return self._use_webs.get(address)
+        pass
 
     def get_all_def_webs(self) -> list[DefWeb]:
         """
@@ -303,7 +302,7 @@ class DefUseAnalyzer:
         Returns:
             List of all DefWeb instances
         """
-        return list(self._def_webs.values())
+        pass
 
     def get_all_use_webs(self) -> list[UseWeb]:
         """
@@ -312,7 +311,7 @@ class DefUseAnalyzer:
         Returns:
             List of all UseWeb instances
         """
-        return list(self._use_webs.values())
+        pass
 
     def get_webs_for_register(self, register: Register) -> tuple[list[DefWeb], list[UseWeb]]:
         """
@@ -324,11 +323,7 @@ class DefUseAnalyzer:
         Returns:
             Tuple of (def_webs, use_webs)
         """
-        def_webs = [web for web in self._def_webs.values() if web.register and web.register.name == register.name]
-
-        use_webs = [web for web in self._use_webs.values() if web.register and web.register.name == register.name]
-
-        return (def_webs, use_webs)
+        pass
 
     def is_definition_reachable(self, definition_addr: int, use_addr: int) -> bool:
         """
@@ -341,12 +336,7 @@ class DefUseAnalyzer:
         Returns:
             True if definition reaches use
         """
-        use_web = self._use_webs.get(use_addr)
-        if use_web:
-            for defn in use_web.definitions:
-                if defn.address == definition_addr:
-                    return True
-        return False
+        pass
 
     def find_uninitialized_uses(self) -> list[UseWeb]:
         """
@@ -384,18 +374,7 @@ class DefUseAnalyzer:
         Returns:
             List of (address, type) tuples representing the path
         """
-        path: list[tuple[int, str]] = []
-
-        def_web = self._def_webs.get(definition_addr)
-        if not def_web:
-            return path
-
-        path.append((definition_addr, "definition"))
-
-        for use in sorted(def_web.uses, key=lambda u: u.address):
-            path.append((use.address, "use"))
-
-        return path
+        pass
 
     def to_dict(self) -> dict[str, Any]:
         """Convert analysis results to dictionary."""

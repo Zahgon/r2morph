@@ -186,8 +186,7 @@ class WorkQueue:
 
     def mark_skipped(self, task_id: int) -> None:
         """Mark a task as skipped."""
-        if task_id in self._tasks:
-            self._tasks[task_id].status = TaskStatus.SKIPPED
+        pass
 
     def get_dependencies(self, task_id: int) -> list[int]:
         """Get dependencies for a task."""
@@ -211,7 +210,7 @@ class WorkQueue:
 
     def is_empty(self) -> bool:
         """Check if queue is empty (no pending or running tasks)."""
-        return self.get_pending_count() == 0 and self.get_running_count() == 0
+        pass
 
     def clear(self) -> None:
         """Clear all tasks."""
@@ -270,44 +269,7 @@ class ResultMerger:
         Returns:
             List of conflicts
         """
-        conflicts = []
-        regions_by_func: dict[int, list[dict]] = {}
-
-        for result in results:
-            if not result.success:
-                continue
-
-            for mutation in result.mutations_applied:
-                addr = mutation.get("address", 0)
-                size = mutation.get("size", 0)
-
-                if result.function_address not in regions_by_func:
-                    regions_by_func[result.function_address] = []
-
-                regions_by_func[result.function_address].append(
-                    {
-                        "start": addr,
-                        "end": addr + size,
-                        "mutation": mutation,
-                        "task_id": result.task_id,
-                    }
-                )
-
-        for func_addr, regions in regions_by_func.items():
-            for i, r1 in enumerate(regions):
-                for r2 in regions[i + 1 :]:
-                    if r1["start"] < r2["end"] and r2["start"] < r1["end"]:
-                        conflicts.append(
-                            {
-                                "function": f"0x{func_addr:x}",
-                                "region1": (r1["start"], r1["end"]),
-                                "region2": (r2["start"], r2["end"]),
-                                "task_ids": [r1["task_id"], r2["task_id"]],
-                            }
-                        )
-
-        self._conflicts = conflicts
-        return conflicts
+        pass
 
     def resolve_conflicts(
         self,
@@ -324,34 +286,7 @@ class ResultMerger:
         Returns:
             List of resolutions
         """
-        resolutions = []
-
-        for conflict in conflicts:
-            resolution = {
-                "conflict": conflict,
-                "strategy": strategy.value,
-                "description": "",
-            }
-
-            if strategy == ResolutionStrategy.SKIP:
-                resolution["description"] = f"Skip conflicting mutation in {conflict['function']}"
-                resolution["action"] = "skip_second"
-
-            elif strategy == ResolutionStrategy.REORDER:
-                resolution["description"] = "Reorder mutations to avoid overlap"
-                resolution["action"] = "reorder"
-
-            elif strategy == ResolutionStrategy.MERGE:
-                resolution["description"] = "Merge mutations into single pass"
-                resolution["action"] = "merge"
-
-            else:
-                resolution["description"] = "Abort due to unresolvable conflict"
-                resolution["action"] = "abort"
-
-            resolutions.append(resolution)
-
-        return resolutions
+        pass
 
     def clear(self) -> None:
         """Clear stored results."""
@@ -388,7 +323,7 @@ class ParallelMutator:
         Args:
             callback: Function to call with (completed, total, current_task)
         """
-        self._progress_callback = callback
+        pass
 
     def create_tasks_from_call_graph(
         self,
@@ -405,32 +340,7 @@ class ParallelMutator:
         Returns:
             List of task IDs
         """
-        task_ids = []
-        func_to_task: dict[int, int] = {}
-
-        for func in functions:
-            addr = func.get("offset", func.get("addr", 0))
-            name = func.get("name", f"func_{addr:x}")
-            passes = func.get("passes", [])
-
-            deps = []
-            if call_graph and addr in call_graph:
-                for caller in call_graph:
-                    if addr in call_graph[caller] and caller in func_to_task:
-                        deps.append(func_to_task[caller])
-
-            task_id = self._work_queue.add_task(
-                function_address=addr,
-                function_name=name,
-                passes=passes,
-                dependencies=deps,
-                priority=len(deps),
-            )
-
-            task_ids.append(task_id)
-            func_to_task[addr] = task_id
-
-        return task_ids
+        pass
 
     def execute_parallel(
         self,

@@ -35,11 +35,7 @@ class SimilarityHasher:
         Returns:
             True if available
         """
-        try:
-            subprocess.run([tool, "--version"], capture_output=True, timeout=5)
-            return True
-        except (subprocess.SubprocessError, FileNotFoundError):
-            return False
+        pass
 
     def hash_file(self, path: Path) -> dict[str, str | None]:
         """
@@ -121,21 +117,7 @@ class SimilarityHasher:
         Returns:
             Similarity score 0-100, or None
         """
-        try:
-            result = subprocess.run(["ssdeep", "-a", "-s", hash1, hash2], capture_output=True, text=True, timeout=10)
-
-            if result.returncode == 0:
-                output = result.stdout.strip()
-                import re
-
-                match = re.search(r"(\d+)", output)
-                if match:
-                    return int(match.group(1))
-
-        except subprocess.SubprocessError as e:
-            logger.error(f"ssdeep comparison failed: {e}")
-
-        return None
+        pass
 
     def compare_files(self, path1: Path, path2: Path) -> dict[str, int | float | None]:
         """
@@ -148,23 +130,7 @@ class SimilarityHasher:
         Returns:
             Dict with similarity scores
         """
-        logger.info(f"Comparing {path1.name} vs {path2.name}")
-
-        result: dict[str, int | float | None] = {
-            "ssdeep_similarity": None,
-            "tlsh_distance": None,
-        }
-
-        if self.has_ssdeep:
-            hash1 = self._ssdeep_hash(path1)
-            hash2 = self._ssdeep_hash(path2)
-
-            if hash1 and hash2:
-                result["ssdeep_similarity"] = self.compare_ssdeep(hash1, hash2)
-
-        result["byte_similarity"] = self._byte_similarity(path1, path2)
-
-        return result
+        pass
 
     def _byte_similarity(self, path1: Path, path2: Path) -> float:
         """
@@ -177,14 +143,4 @@ class SimilarityHasher:
         Returns:
             Similarity percentage 0-100
         """
-        with open(path1, "rb") as f1, open(path2, "rb") as f2:
-            data1 = f1.read()
-            data2 = f2.read()
-
-        if len(data1) != len(data2):
-            return 0.0
-
-        matches = sum(1 for a, b in zip(data1, data2, strict=False) if a == b)
-        total = len(data1)
-
-        return (matches / total * 100) if total > 0 else 0.0
+        pass

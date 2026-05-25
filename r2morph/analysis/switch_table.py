@@ -63,20 +63,17 @@ class JumpTable:
     @property
     def case_count(self) -> int:
         """Number of cases in the table."""
-        return len([e for e in self.entries if not e.is_default])
+        pass
 
     @property
     def unique_targets(self) -> list[int]:
         """Unique target addresses in the table."""
-        return sorted(set(e.target_address for e in self.entries))
+        pass
 
     @property
     def is_dense(self) -> bool:
         """Check if case values are dense (no gaps)."""
-        case_values = sorted(e.case_value for e in self.entries if e.case_value is not None)
-        if len(case_values) < 2:
-            return True
-        return case_values[-1] - case_values[0] + 1 == len(case_values)
+        pass
 
 
 @dataclass
@@ -582,23 +579,7 @@ class SwitchTableAnalyzer:
         Returns:
             Dictionary mapping case values to target addresses
         """
-        targets: dict[int, list[int]] = {}
-
-        for entry in table.entries:
-            if entry.case_value is None:
-                continue
-
-            case_value = entry.case_value
-            target = entry.target_address
-
-            if case_value not in targets:
-                targets[case_value] = []
-            targets[case_value].append(target)
-
-        if table.default_case is not None and table.default_case not in targets:
-            targets[table.default_case] = [0]
-
-        return targets
+        pass
 
     def reconstruct_switch_cases(self, table: JumpTable, function_address: int) -> dict[int, dict[str, Any]]:
         """
@@ -611,33 +592,7 @@ class SwitchTableAnalyzer:
         Returns:
             Dictionary mapping case values to case block info
         """
-        try:
-            blocks = self.binary.get_basic_blocks(function_address)
-        except Exception:
-            return {}
-
-        block_addrs = {b.get("addr", 0) for b in blocks}
-
-        cases: dict[int, dict[str, Any]] = {}
-
-        for entry in table.entries:
-            if entry.is_default:
-                continue
-
-            target = entry.target_address
-            case_value = entry.case_value if entry.case_value is not None else entry.index
-
-            if target not in block_addrs:
-                logger.debug(f"Jump table entry {entry.index} targets 0x{target:x} which is not a basic block start")
-
-            cases[case_value] = {
-                "value": case_value,
-                "target": target,
-                "is_block_start": target in block_addrs,
-                "table_index": entry.index,
-            }
-
-        return cases
+        pass
 
     def analyze_function_jumps(self, function_address: int) -> dict[str, Any]:
         """
@@ -649,62 +604,4 @@ class SwitchTableAnalyzer:
         Returns:
             Dictionary with all jump analysis results
         """
-        jump_tables, other_jumps = self.detect_switch_pattern(function_address)
-        tail_calls = self.detect_tail_calls(function_address)
-
-        resolved_tables: list[dict[str, Any]] = []
-        for table in jump_tables:
-            cases = self.reconstruct_switch_cases(table, function_address)
-            resolved_tables.append(
-                {
-                    "table_address": table.table_address,
-                    "table_type": table.table_type.value,
-                    "case_count": table.case_count,
-                    "unique_targets": len(table.unique_targets),
-                    "is_dense": table.is_dense,
-                    "bounds_register": table.bounds_check_register,
-                    "bounds_address": table.bounds_check_address,
-                    "cases": cases,
-                }
-            )
-
-        other_jump_info: list[dict[str, Any]] = []
-        for jump in other_jumps:
-            other_jump_info.append(
-                {
-                    "address": jump.address,
-                    "instruction": jump.instruction,
-                    "jump_type": jump.jump_type,
-                    "base_register": jump.base_register,
-                    "index_register": jump.index_register,
-                    "scale": jump.scale,
-                    "displacement": jump.displacement,
-                    "target_candidates": jump.target_candidates,
-                }
-            )
-
-        tail_call_info: list[dict[str, Any]] = []
-        for jump_addr, target_addr in tail_calls:
-            target_name = ""
-            if self._known_functions and target_addr in self._known_functions:
-                target_name = self._known_functions[target_addr]
-            tail_call_info.append(
-                {
-                    "jump_address": jump_addr,
-                    "target_address": target_addr,
-                    "target_name": target_name,
-                }
-            )
-
-        return {
-            "function_address": function_address,
-            "jump_tables": resolved_tables,
-            "other_indirect_jumps": other_jump_info,
-            "tail_calls": tail_call_info,
-            "statistics": {
-                "total_jump_tables": len(jump_tables),
-                "total_other_jumps": len(other_jumps),
-                "total_tail_calls": len(tail_calls),
-                "total_switch_cases": sum(t.case_count for t in jump_tables),
-            },
-        }
+        pass

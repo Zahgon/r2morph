@@ -216,7 +216,7 @@ class CallGraph:
 
     def get_node(self, address: int) -> CallNode | None:
         """Get a function node by address."""
-        return self.nodes.get(address)
+        pass
 
     def get_callers(self, address: int) -> list[int]:
         """
@@ -228,10 +228,7 @@ class CallGraph:
         Returns:
             List of caller function addresses
         """
-        node = self.nodes.get(address)
-        if node is None:
-            return []
-        return list(node.callers)
+        pass
 
     def get_callees(self, address: int) -> list[int]:
         """
@@ -243,10 +240,7 @@ class CallGraph:
         Returns:
             List of callee function addresses
         """
-        node = self.nodes.get(address)
-        if node is None:
-            return []
-        return list(node.callees)
+        pass
 
     def get_call_sites(self, caller: int, callee: int) -> list[int]:
         """
@@ -259,11 +253,7 @@ class CallGraph:
         Returns:
             List of call site addresses
         """
-        sites = []
-        for edge in self.edges:
-            if edge.caller == caller and edge.callee == callee:
-                sites.append(edge.call_site)
-        return sites
+        pass
 
     def get_entry_points(self) -> list[int]:
         """
@@ -303,8 +293,7 @@ class CallGraph:
         Returns:
             List of recursive chains (each chain is a list of function addresses)
         """
-        self._detect_recursion()
-        return self._recursive_chains
+        pass
 
     def _detect_recursion(self) -> None:
         """Detect recursion in the call graph."""
@@ -454,34 +443,7 @@ class CallGraph:
         Returns:
             List of function addresses in topological order
         """
-        visited: set[int] = set()
-        result: list[int] = []
-
-        # Iterative post-order DFS. An explicit stack is used instead of
-        # recursion because real (often malicious) binaries can produce call
-        # chains far deeper than CPython's recursion limit; a recursive
-        # walker would raise RecursionError on such input. Each node is
-        # pushed once for expansion and once (post=True) for emission, so a
-        # node is appended only after all its callees, preserving the exact
-        # post-order the recursive implementation produced.
-        for start in sorted(self.nodes.keys()):
-            if start in visited or start not in self.nodes:
-                continue
-            stack: list[tuple[int, bool]] = [(start, False)]
-            while stack:
-                node, post = stack.pop()
-                if post:
-                    result.append(node)
-                    continue
-                if node in visited or node not in self.nodes:
-                    continue
-                visited.add(node)
-                stack.append((node, True))
-                for callee in reversed(self.nodes[node].callees):
-                    if callee not in visited:
-                        stack.append((callee, False))
-
-        return result
+        pass
 
     def find_call_path(self, src: int, dst: int) -> list[int] | None:
         """
@@ -494,58 +456,7 @@ class CallGraph:
         Returns:
             List of function addresses forming the path, or None if no path exists
         """
-        if src not in self.nodes or dst not in self.nodes:
-            return None
-
-        visited: set[int] = set()
-        path: list[int] = []
-
-        def descend(current: int) -> bool | None:
-            # Mirrors the recursive dfs() early returns: True/False is the
-            # value the recursive call would return immediately; None means
-            # `current` passed the guards and needs its own frame (iterate
-            # its callees). `visited`/`path` are mutated in exactly the same
-            # order as the recursive implementation.
-            if current == dst:
-                path.append(current)
-                return True
-            if current in visited:
-                return False
-            visited.add(current)
-            path.append(current)
-            node = self.nodes.get(current)
-            if node is None:
-                path.pop()
-                return False
-            return None
-
-        # An explicit stack replaces the interpreter call stack so deep
-        # call graphs (routine in real binaries) no longer raise
-        # RecursionError. The simulation is mechanically equivalent to the
-        # recursive depth-first search, so it returns the identical
-        # first-found path for every input.
-        start = descend(src)
-        if start is True:
-            return path
-        if start is False:
-            return None
-
-        stack: list[_PathFrame] = [_PathFrame(list(self.nodes[src].callees))]
-        while stack:
-            frame = stack[-1]
-            if frame.idx < len(frame.callees):
-                callee = frame.callees[frame.idx]
-                frame.idx += 1
-                result = descend(callee)
-                if result is True:
-                    return path
-                if result is None:
-                    stack.append(_PathFrame(list(self.nodes[callee].callees)))
-            else:
-                path.pop()
-                stack.pop()
-
-        return None
+        pass
 
     def get_depth(self, address: int) -> int:
         """
@@ -557,51 +468,7 @@ class CallGraph:
         Returns:
             Maximum depth of call chain from this function
         """
-        visited: set[int] = set()
-
-        def descend(node: int) -> int | None:
-            # Mirrors the recursive base cases: returns the immediate
-            # depth() value, or None when `node` needs its own frame
-            # (passed the guards and has callees). `visited` is marked in
-            # pre-order, exactly as the recursive implementation did.
-            if node in visited:
-                return 0
-            if node not in self.nodes:
-                return 0
-            visited.add(node)
-            if not self.nodes[node].callees:
-                return 0
-            return None
-
-        # An explicit stack replaces the interpreter call stack so deep
-        # call graphs (routine in real binaries) no longer raise
-        # RecursionError. The simulation is mechanically equivalent to the
-        # recursive descent — same shared `visited` set, same left-to-right
-        # max over callees — so the returned depth is identical for every
-        # input.
-        root = descend(address)
-        if root is not None:
-            return root
-
-        stack: list[_DepthFrame] = [_DepthFrame(list(self.nodes[address].callees))]
-        returned = 0
-        while stack:
-            frame = stack[-1]
-            if frame.idx < len(frame.callees):
-                callee = frame.callees[frame.idx]
-                frame.idx += 1
-                child = descend(callee)
-                if child is None:
-                    stack.append(_DepthFrame(list(self.nodes[callee].callees)))
-                elif child > frame.best:
-                    frame.best = child
-            else:
-                returned = 1 + frame.best
-                stack.pop()
-                if stack and returned > stack[-1].best:
-                    stack[-1].best = returned
-
-        return returned
+        pass
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation."""
@@ -632,31 +499,7 @@ class CallGraph:
         Returns:
             DOT format string
         """
-        lines = [
-            "digraph CallGraph {",
-            "  node [shape=box];",
-            "  rankdir=TB;",
-            "",
-        ]
-
-        for addr, node in self.nodes.items():
-            label = f"{node.name}\\n0x{addr:x}" if node.name else f"0x{addr:x}"
-            color = "red" if node.is_recursive else "lightblue"
-            if addr in self.get_entry_points():
-                color = "green"
-            elif addr in self.get_leaf_functions():
-                color = "yellow"
-            lines.append(f'  "0x{addr:x}" [label="{label}", style=filled, fillcolor={color}];')
-
-        lines.append("")
-
-        for edge in self.edges:
-            style = "dashed" if edge.call_type == CallType.INDIRECT else "solid"
-            label = edge.call_type.value
-            lines.append(f'  "0x{edge.caller:x}" -> "0x{edge.callee:x}" [style={style}, label="{label}"];')
-
-        lines.append("}")
-        return "\n".join(lines)
+        pass
 
     def to_json(self) -> str:
         """
@@ -951,24 +794,7 @@ class CallGraphBuilder:
         Returns:
             List of possible target addresses
         """
-        targets: list[int] = []
-
-        if call_site in self._known_indirect_targets:
-            return self._known_indirect_targets[call_site]
-
-        if context and "possible_targets" in context:
-            targets = context["possible_targets"]
-
-        functions = binary.get_functions()
-        func_starts = {f.get("offset", f.get("addr", 0)) for f in functions}
-
-        for addr in targets:
-            if addr in func_starts:
-                if call_site not in self._known_indirect_targets:
-                    self._known_indirect_targets[call_site] = []
-                self._known_indirect_targets[call_site].append(addr)
-
-        return self._known_indirect_targets.get(call_site, targets)
+        pass
 
 
 def build_call_graph(binary: Binary, include_indirect: bool = True, include_plt: bool = True) -> CallGraph:

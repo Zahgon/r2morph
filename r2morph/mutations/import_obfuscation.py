@@ -193,9 +193,7 @@ class ImportTableObfuscationPass(MutationPass):
         Returns:
             Assembled jump stub bytes or None
         """
-        stub = f"jmp 0x{target_addr:x}"
-        result = binary.assemble(stub, None)
-        return bytes(result) if result else None
+        pass
 
     def _find_call_xrefs(self, binary: Any, plt_addr: int) -> list[dict[str, Any]]:
         """

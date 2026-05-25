@@ -321,39 +321,7 @@ class ReportFilters:
         degraded_passes: list[dict[str, Any]],
     ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         """Select mutations for report based on active filters."""
-        filtered = []
-        adjusted_degraded_passes = list(degraded_passes)
-
-        for mutation in all_mutations:
-            pass_name = mutation.get("pass_name", "unknown")
-            metadata = mutation.get("metadata", {})
-
-            if resolved_only_pass and pass_name != resolved_only_pass:
-                continue
-
-            if only_status and metadata.get("symbolic_status") != only_status:
-                continue
-
-            if only_degraded:
-                degraded = metadata.get("degraded_execution", False)
-                triggered = metadata.get("degradation_triggered_by_pass", False)
-                if not (degraded or triggered):
-                    continue
-
-            if only_risky_filters and pass_name not in selected_risk_pass_names:
-                continue
-
-            filtered.append(mutation)
-
-        if only_degraded and adjusted_degraded_passes:
-            adjusted_degraded_passes = [
-                item
-                for item in adjusted_degraded_passes
-                if item.get("pass_name", item.get("mutation", "unknown"))
-                in {m.get("pass_name", "unknown") for m in filtered}
-            ]
-
-        return filtered, adjusted_degraded_passes
+        pass
 
     @staticmethod
     def resolve_mismatch_view(

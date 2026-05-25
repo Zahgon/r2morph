@@ -178,74 +178,15 @@ class MorphSession:
         Returns:
             Mutation result dict
         """
-        from r2morph.core.binary import Binary
-
-        if self.current_binary is None:
-            raise ValueError("No active binary in session")
-
-        logger.info(f"Applying mutation: {mutation_pass.name}")
-
-        checkpoint_before = self.checkpoint("pre_mutation", description or f"Before {mutation_pass.name}")
-        mutations_before = self.mutations_count
-
-        binary = None
-        try:
-            binary = Binary(self.current_binary, writable=True)
-            binary.open()
-            binary.analyze()
-            result: dict[str, Any] = mutation_pass.apply(binary)
-
-            mutations_applied = result.get("mutations_applied", 0)
-            self.mutations_count += mutations_applied
-
-            logger.info(f"Applied {mutations_applied} mutations (total: {self.mutations_count})")
-
-            return result
-        except Exception as e:
-            logger.error(f"Mutation failed: {mutation_pass.name}: {e}")
-            self.mutations_count = mutations_before
-            rollback_ok = False
-            if self.current_binary and checkpoint_before.binary_path.exists():
-                try:
-                    shutil.copy2(checkpoint_before.binary_path, self.current_binary)
-                    rollback_ok = True
-                except FileNotFoundError:
-                    logger.warning(f"Checkpoint file disappeared: {checkpoint_before.binary_path}")
-                except Exception as rollback_error:
-                    logger.error(f"Failed to rollback: {rollback_error}")
-            # Only remove checkpoint after confirmed successful rollback
-            if rollback_ok:
-                self._remove_checkpoint(checkpoint_before)
-            raise
-        finally:
-            if binary is not None:
-                try:
-                    binary.close()
-                except Exception as close_error:
-                    logger.debug(f"Error closing binary: {close_error}")
+        pass
 
     def _remove_checkpoint(self, checkpoint: Checkpoint) -> None:
         """Remove a checkpoint file."""
-        if checkpoint is None:
-            return
-        try:
-            if checkpoint.binary_path.exists():
-                checkpoint.binary_path.unlink()
-            # Remove this specific checkpoint by identity. Removing by name
-            # would also drop unrelated checkpoints that reuse the name.
-            self.checkpoints = [cp for cp in self.checkpoints if cp is not checkpoint]
-        except Exception as e:
-            logger.debug(f"Failed to remove checkpoint {checkpoint.name}: {e}")
+        pass
 
     def _restore_from_last_checkpoint(self) -> None:
         """Attempt to restore binary from the most recent checkpoint."""
-        for checkpoint in reversed(self.checkpoints):
-            if checkpoint.binary_path.exists():
-                logger.warning(f"Restoring from checkpoint: {checkpoint.name}")
-                if self.current_binary is not None:
-                    shutil.copy2(checkpoint.binary_path, self.current_binary)
-                self.mutations_count = checkpoint.mutations_applied
-                break
+        pass
 
     def list_checkpoints(self) -> list[Checkpoint]:
         """
@@ -263,10 +204,7 @@ class MorphSession:
         Returns:
             Path to current binary
         """
-        if self.current_binary is None:
-            raise ValueError("No active binary in session")
-
-        return self.current_binary
+        pass
 
     def finalize(self, output_path: Path) -> bool:
         """

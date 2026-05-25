@@ -314,9 +314,7 @@ class InstructionExpansionPass(MutationPass):
         Returns:
             Estimated size increase in bytes
         """
-        original_size = 3
-        expanded_size = len(expansion) * 3
-        return expanded_size - original_size
+        pass
 
     def _is_safe_to_expand(self, instruction: dict[str, Any], function_size: int) -> bool:
         """

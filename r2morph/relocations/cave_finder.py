@@ -158,23 +158,7 @@ class CaveFinder:
         Returns:
             CodeCave or None
         """
-        if not self.caves:
-            self.find_caves()
-            if not self.caves:
-                logger.warning(f"No caves found in binary for {needed_size} bytes")
-
-        if not self.caves:
-            return None
-
-        sorted_caves = sorted(self.caves, key=lambda c: c.size, reverse=True)
-
-        for cave in sorted_caves:
-            if cave.size >= needed_size and cave.is_executable:
-                logger.debug(f"Found cave for {needed_size} bytes: {cave}")
-                return cave
-
-        logger.warning(f"No cave found for {needed_size} bytes")
-        return None
+        pass
 
     def allocate_cave(self, cave: CodeCave, size: int) -> tuple[int, int]:
         """
@@ -190,34 +174,7 @@ class CaveFinder:
         Returns:
             Tuple of (address, size) allocated
         """
-        if size > cave.size:
-            raise ValueError(f"Cannot allocate {size} bytes from {cave.size} byte cave")
-
-        allocated_addr = cave.address
-        allocated_size = size
-
-        remaining_size = cave.size - size
-        remaining_addr = cave.address + size
-
-        # Remove the original cave from the list
-        try:
-            self.caves.remove(cave)
-        except ValueError:
-            logger.debug("Cave already removed from available caves")
-
-        # If there's enough space left, add a new cave for the remainder
-        if remaining_size >= self.min_size:
-            remainder = CodeCave(
-                address=remaining_addr,
-                size=remaining_size,
-                section=cave.section,
-                is_executable=cave.is_executable,
-            )
-            self.caves.append(remainder)
-
-        logger.debug(f"Allocated {allocated_size} bytes at 0x{allocated_addr:x}")
-
-        return allocated_addr, allocated_size
+        pass
 
     def insert_code_in_cave(self, code_bytes: bytes, preferred_section: str | None = None) -> int | None:
         """
@@ -230,25 +187,4 @@ class CaveFinder:
         Returns:
             Address where code was inserted, or None
         """
-        needed_size = len(code_bytes)
-
-        if preferred_section:
-            for cave in self.caves:
-                if cave.section == preferred_section and cave.size >= needed_size:
-                    addr, _ = self.allocate_cave(cave, needed_size)
-                    if not self.binary.write_bytes(addr, code_bytes):
-                        logger.error(f"Failed to write {needed_size} bytes at 0x{addr:x}")
-                        return None
-                    logger.info(f"Inserted {needed_size} bytes at 0x{addr:x} in {preferred_section}")
-                    return addr
-
-        found_cave = self.find_cave_for_size(needed_size)
-        if found_cave:
-            addr, _ = self.allocate_cave(found_cave, needed_size)
-            if not self.binary.write_bytes(addr, code_bytes):
-                logger.error(f"Failed to write {needed_size} bytes at 0x{addr:x}")
-                return None
-            logger.info(f"Inserted {needed_size} bytes at 0x{addr:x}")
-            return addr
-
-        return None
+        pass

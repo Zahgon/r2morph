@@ -415,31 +415,7 @@ class CFGIntegrityChecker:
         Returns:
             Dictionary with preservation analysis
         """
-        if self._preservation_manager is None:
-            self._preservation_manager = PatternPreservationManager(self.binary)
-            self._preservation_manager.analyze()
-
-        patterns = self._preservation_manager.get_patterns_in_range(
-            function_address,
-            function_address + 0x10000,
-        )
-
-        zones = self._preservation_manager.get_exclusion_zones()
-
-        func_zones = [
-            z for z in zones if z.expanded_start < function_address + 0x10000 and z.expanded_end > function_address
-        ]
-
-        return {
-            "function_address": function_address,
-            "patterns_detected": len(patterns),
-            "patterns": [p.to_dict() for p in patterns],
-            "exclusion_zones": [z.to_dict() for z in func_zones],
-            "safe_regions": self._preservation_manager.get_safe_addresses(
-                function_address,
-                function_address + 0x10000,
-            ),
-        }
+        pass
 
     def clear_snapshot(self, function_address: int) -> None:
         """Clear a snapshot after validation."""
@@ -448,7 +424,7 @@ class CFGIntegrityChecker:
 
     def clear_all_snapshots(self) -> None:
         """Clear all stored snapshots."""
-        self._snapshots.clear()
+        pass
 
 
 class HardenedMutationValidator:
@@ -473,31 +449,7 @@ class HardenedMutationValidator:
         Returns:
             Pre-mutation analysis results
         """
-        if self._preservation_manager is None:
-            self._preservation_manager = PatternPreservationManager(self.binary)
-            self._preservation_manager.analyze()
-
-        snapshot = self._integrity_checker.create_snapshot(function_address)
-
-        preservation = self._preservation_manager.get_patterns_in_range(
-            function_address,
-            function_address + 0x10000,
-        )
-
-        safe_addresses = self._preservation_manager.get_safe_addresses(
-            function_address,
-            function_address + 0x10000,
-        )
-
-        return {
-            "function_address": function_address,
-            "snapshot_created": snapshot is not None,
-            "patterns_to_preserve": len(preservation),
-            "safe_address_ranges": len(safe_addresses),
-            "exclusion_zones": len(
-                [z for z in self._preservation_manager.get_exclusion_zones() if z.expanded_start >= function_address]
-            ),
-        }
+        pass
 
     def post_mutation_validation(self, function_address: int) -> dict[str, Any]:
         """
@@ -509,23 +461,8 @@ class HardenedMutationValidator:
         Returns:
             Validation results
         """
-        integrity_report = self._integrity_checker.validate_integrity(function_address)
-
-        result = {
-            "function_address": function_address,
-            "valid": integrity_report.valid,
-            "violations": len(integrity_report.violations),
-            "violation_details": [v.to_dict() for v in integrity_report.violations],
-            "checks_run": len(integrity_report.checks_run),
-        }
-
-        self._integrity_checker.clear_snapshot(function_address)
-
-        return result
+        pass
 
     def get_preservation_manager(self) -> PatternPreservationManager:
         """Get the preservation manager."""
-        if self._preservation_manager is None:
-            self._preservation_manager = PatternPreservationManager(self.binary)
-            self._preservation_manager.analyze()
-        return self._preservation_manager
+        pass

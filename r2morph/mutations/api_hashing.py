@@ -154,8 +154,7 @@ def ror32(value: int, count: int) -> int:
 
 def rol32(value: int, count: int) -> int:
     """Rotate left 32-bit value."""
-    count = count % 32
-    return ((value << count) | (value >> (32 - count))) & 0xFFFFFFFF
+    pass
 
 
 def hash_ror13(name: str) -> int:
@@ -454,168 +453,7 @@ def generate_resolve_function(arch: str = "x64") -> str:
     Returns:
         Assembly code string
     """
-    if arch == "x64":
-        return """
-; Generic API resolver - takes hash in RCX, returns address in RAX
-resolve_api_hash:
-    push rbx
-    push rsi
-    push rdi
-    push r12
-    push r13
-
-    mov r12, rcx                ; save target hash
-
-    mov rax, gs:[0x60]          ; PEB
-    mov rax, [rax + 0x18]       ; PEB->Ldr
-    mov rax, [rax + 0x20]       ; InMemoryOrderModuleList
-
-    ; Walk module list to find kernel32
-.find_kernel32:
-    mov rdx, [rax]              ; next entry
-    mov rsi, [rdx + 0x20]        ; base address
-    mov edi, [rsi + 0x3C]        ; e_lfanew
-    mov edi, [rsi + rdi + 0x88]  ; Export RVA
-    test edi, edi
-    jz .next_module
-    jmp .walk_exports
-
-.next_module:
-    mov rax, rdx
-    jmp .find_kernel32
-
-.walk_exports:
-    add rdi, rsi                 ; Export table
-    mov ebx, [rdi + 0x18]        ; NumberOfNames
-    mov r13d, [rdi + 0x20]        ; AddressOfNames RVA
-    add r13, rsi
-    mov r11d, [rdi + 0x24]        ; AddressOfNameOrdinals RVA
-    add r11, rsi
-
-    xor edx, edx                 ; counter
-
-.hash_loop:
-    mov ecx, [r13 + rdx*4]       ; Name RVA
-    add rcx, rsi                 ; Name address
-    xor eax, eax                 ; hash accumulator
-
-.name_loop:
-    movzx ebx, byte [rcx]
-    test bl, bl
-    jz .compare_hash
-    ror eax, 13
-    add eax, ebx
-    and eax, 0xFFFFFFFF
-    inc rcx
-    jmp .name_loop
-
-.compare_hash:
-    cmp eax, r12d
-    je .found
-
-    inc edx
-    mov ebx, [rdi + 0x18]
-    cmp edx, ebx
-    jb .hash_loop
-
-    xor rax, rax                 ; not found
-    jmp .done
-
-.found:
-    movzx eax, word [r11 + rdx*2]
-    mov ecx, [rdi + 0x1C]        ; AddressOfFunctions RVA
-    add ecx, rsi
-    mov eax, [ecx + eax*4]       ; function RVA
-    add rax, rsi                 ; function address
-
-.done:
-    pop r13
-    pop r12
-    pop rdi
-    pop rsi
-    pop rbx
-    ret
-"""
-    else:
-        return """
-; Generic API resolver (x86) - takes hash on stack, returns address in EAX
-resolve_api_hash:
-    push ebx
-    push esi
-    push edi
-    push ebp
-
-    mov ebp, [esp + 0x14]        ; target hash from stack
-
-    mov eax, fs:[0x30]           ; PEB
-    mov eax, [eax + 0xC]         ; PEB->Ldr
-    mov eax, [eax + 0x14]        ; InMemoryOrderModuleList
-
-    ; Find kernel32.dll
-.find_kernel32:
-    mov edx, [eax]
-    mov esi, [edx + 0x10]        ; base address
-
-.walk_exports:
-    mov eax, [esi + 0x3C]        ; e_lfanew
-    mov eax, [esi + eax + 0x78]  ; Export RVA
-    add eax, esi
-
-    mov ebx, [eax + 0x18]        ; NumberOfNames
-    mov ecx, [eax + 0x20]        ; AddressOfNames
-    add ecx, esi
-    push ecx
-    mov edx, [eax + 0x24]        ; AddressOfNameOrdinals
-    add edx, esi
-
-    xor ecx, ecx                 ; counter
-
-.hash_loop:
-    mov eax, [esp]
-    mov eax, [eax + ecx*4]       ; Name RVA
-    add eax, esi                 ; Name address
-    push edx
-    xor edx, edx                 ; hash accumulator
-
-.name_loop:
-    movzx ebx, byte [eax]
-    test bl, bl
-    jz .compare
-    ror edx, 13
-    add edx, ebx
-    and edx, 0xFFFFFFFF
-    inc eax
-    jmp .name_loop
-
-.compare:
-    cmp edx, ebp
-    pop edx
-    je .found
-
-    inc ecx
-    cmp ecx, [eax + 0x18]        ; compare with NumberOfNames
-    jb .hash_loop
-
-    xor eax, eax
-    jmp .done
-
-.found:
-    movzx eax, word [edx + ecx*2]
-    mov ecx, [esi + 0x3C]
-    mov ecx, [esi + ecx + 0x78]
-    mov ecx, [ecx + 0x1C]        ; AddressOfFunctions
-    add ecx, esi
-    mov eax, [ecx + eax*4]
-    add eax, esi
-
-.done:
-    pop ecx
-    pop ebp
-    pop edi
-    pop esi
-    pop ebx
-    ret 4
-"""
+    pass
 
 
 class APIHashingPass(MutationPass):
@@ -826,19 +664,8 @@ class APIHashingPass(MutationPass):
 
     def get_api_hashes(self) -> dict[str, int]:
         """Get hashes for all APIs in the list."""
-        return {api: self._hash_api(api) for api in self.api_list}
+        pass
 
     def generate_hash_table(self) -> str:
         """Generate C-style hash table for all known APIs."""
-        lines = ["// API Hash Table", f"// Algorithm: {self.hash_algorithm}", ""]
-        lines.append("static struct {")
-        lines.append("    uint32_t hash;")
-        lines.append("    const char *name;")
-        lines.append("} api_hashes[] = {")
-
-        for api in sorted(self.api_list):
-            h = self._hash_api(api)
-            lines.append(f'    {{ 0x{h:08X}, "{api}" }},')
-
-        lines.append("};")
-        return "\n".join(lines)
+        pass

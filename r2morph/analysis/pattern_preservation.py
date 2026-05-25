@@ -79,13 +79,7 @@ class ExclusionZone:
     reason: str = ""
     radius: int = 0
 
-    @property
-    def expanded_start(self) -> int:
-        return max(0, self.start_address - self.radius)
 
-    @property
-    def expanded_end(self) -> int:
-        return self.end_address + self.radius
 
     def contains(self, address: int) -> bool:
         return self.expanded_start <= address < self.expanded_end
@@ -384,8 +378,7 @@ class PatternPreservationManager:
         Returns:
             PreservedPattern if found, None otherwise
         """
-        patterns = self._address_index.get(address, [])
-        return patterns[0] if patterns else None
+        pass
 
     def get_patterns_in_range(self, start: int, end: int) -> list[PreservedPattern]:
         """
@@ -428,7 +421,7 @@ class PatternPreservationManager:
         Returns:
             List of ExclusionZone instances
         """
-        return [z for z in self._exclusion_zones if z.pattern_type == pattern_type]
+        pass
 
     def get_safe_addresses(
         self,
@@ -475,7 +468,7 @@ class PatternPreservationManager:
         Returns:
             List of PreservedPattern instances
         """
-        return [p for p in self._patterns if p.type == pattern_type]
+        pass
 
     def report(self) -> dict[str, Any]:
         """

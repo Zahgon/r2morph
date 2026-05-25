@@ -36,21 +36,7 @@ def handle_mutate_command(
     Returns:
         Dict with mutation results
     """
-    from r2morph.session import MorphSession
-
-    session: Any = MorphSession(Path(str(input_file)))
-    session.set_mutations(mutations)
-    session.set_validation_mode(validation_mode)
-
-    if output_file:
-        session.set_output(str(output_file))
-
-    results: dict[str, Any] = dict(session.run())
-
-    if report_path:
-        report_path.write_text(json.dumps(results, indent=2), encoding="utf-8")
-
-    return results
+    pass
 
 
 def handle_report_command(
@@ -71,35 +57,7 @@ def handle_report_command(
     Returns:
         Dict with report payload
     """
-    from r2morph.reporting import enforce_report_requirements
-
-    with open(report_file, "r", encoding="utf-8") as handle:
-        payload: dict[str, Any] = json.load(handle)
-
-    if only_pass:
-        mutations = [m for m in payload.get("mutations", []) if m.get("pass_name") == only_pass]
-        payload["mutations"] = mutations
-        payload["filtered_summary"] = {
-            "passes": [only_pass] if mutations else [],
-            "mutations": len(mutations),
-        }
-
-    if require_results:
-        severity_rows = payload.get("summary", {}).get("symbolic_severity_by_pass", [])
-        enforce_report_requirements(
-            require_results=True,
-            severity_rows=severity_rows,
-            min_severity_rank=None,
-            mutation_count=len(payload.get("mutations", [])),
-            only_failed_gates=False,
-            failed_gates=False,
-            gate_failure_count=None,
-            only_risky_passes=False,
-            risky_pass_count=0,
-            pass_count=len(payload.get("summary", {}).get("passes", [])),
-        )
-
-    return payload
+    pass
 
 
 def handle_version_command() -> str:
@@ -109,9 +67,7 @@ def handle_version_command() -> str:
     Returns:
         Version string
     """
-    from r2morph import __version__
-
-    return __version__
+    pass
 
 
 def handle_session_command(
@@ -130,17 +86,7 @@ def handle_session_command(
     Returns:
         Dict with session info
     """
-    from r2morph.session import MorphSession
-
-    session: Any = MorphSession(Path(str(input_file)))
-    if session_name:
-        session.set_name(session_name)
-
-    return {
-        "session_id": session.session_id,
-        "binary": str(input_file),
-        "name": session_name,
-    }
+    pass
 
 
 def validate_report_filters(
@@ -161,23 +107,7 @@ def validate_report_filters(
     Returns:
         List of validation errors
     """
-    errors = []
-
-    active_filters = sum(
-        [
-            bool(only_pass),
-            only_risky_passes,
-            only_clean_passes,
-            kwargs.get("only_failed_gates", False),
-            kwargs.get("only_mismatches", False),
-            kwargs.get("only_degraded", False),
-        ]
-    )
-
-    if active_filters > 1:
-        errors.append("Only one filter option can be active at a time")
-
-    return errors
+    pass
 
 
 def resolve_validation_mode(
@@ -196,30 +126,7 @@ def resolve_validation_mode(
     Returns:
         Tuple of (effective_mode, degradation_reason, policy)
     """
-    from r2morph.core import Binary
-
-    degradation_reason: str | None = None
-    policy: dict[str, Any] = {}
-
-    if requested_mode == "off":
-        return "off", "", policy
-
-    if requested_mode == "structural":
-        return "structural", "", policy
-
-    if requested_mode == "symbolic":
-        try:
-            with Binary(binary_path) as binary:
-                binary.analyze("aaa")
-                return "symbolic", "", policy
-        except Exception as e:
-            if allow_limited:
-                degradation_reason = f"symbolic_not_available: {e}"
-                return "structural", degradation_reason, {"limited_passes": [], "degraded": True}
-            else:
-                raise
-
-    return requested_mode, "", policy
+    pass
 
 
 __all__ = [

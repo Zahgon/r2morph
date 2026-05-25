@@ -97,15 +97,15 @@ class InterferenceGraph:
 
     def interfere(self, reg1: str, reg2: str) -> bool:
         """Check if two registers interfere."""
-        return reg2 in self.edges.get(reg1, set())
+        pass
 
     def get_neighbors(self, register: str) -> set[str]:
         """Get all registers that interfere with the given register."""
-        return self.edges.get(register, set())
+        pass
 
     def get_nodes(self) -> set[str]:
         """Get all register nodes in the graph."""
-        return set(self.edges.keys())
+        pass
 
     def to_dict(self) -> dict[str, list[str]]:
         """Convert to dictionary."""
@@ -499,11 +499,7 @@ class LivenessAnalysis:
         Returns:
             True if register is live at address
         """
-        if address in self._instruction_liveness:
-            live_before = self._instruction_liveness[address].live_before
-            return any(r.name == register.name for r in live_before)
-
-        return False
+        pass
 
     def get_live_registers(self, address: int) -> set[Register]:
         """
@@ -515,9 +511,7 @@ class LivenessAnalysis:
         Returns:
             Set of live registers
         """
-        if address in self._instruction_liveness:
-            return self._instruction_liveness[address].live_before.copy()
-        return set()
+        pass
 
     def get_live_ranges(self, register: Register | None = None) -> list[LiveRange]:
         """
@@ -529,12 +523,7 @@ class LivenessAnalysis:
         Returns:
             List of live ranges
         """
-        if register:
-            return self._live_ranges.get(register.name, [])
-        all_ranges = []
-        for ranges in self._live_ranges.values():
-            all_ranges.extend(ranges)
-        return all_ranges
+        pass
 
     def get_instruction_liveness(self, address: int) -> InstructionLiveness | None:
         """
@@ -546,7 +535,7 @@ class LivenessAnalysis:
         Returns:
             InstructionLiveness or None
         """
-        return self._instruction_liveness.get(address)
+        pass
 
     def get_interference_graph(self) -> InterferenceGraph:
         """
@@ -555,7 +544,7 @@ class LivenessAnalysis:
         Returns:
             InterferenceGraph instance
         """
-        return self._interference_graph
+        pass
 
     def get_block_live_in(self, block_address: int) -> set[Register]:
         """
@@ -567,7 +556,7 @@ class LivenessAnalysis:
         Returns:
             Set of live registers
         """
-        return self._block_live_in.get(block_address, set())
+        pass
 
     def get_block_live_out(self, block_address: int) -> set[Register]:
         """
@@ -579,7 +568,7 @@ class LivenessAnalysis:
         Returns:
             Set of live registers
         """
-        return self._block_live_out.get(block_address, set())
+        pass
 
     def to_dict(self) -> dict[str, Any]:
         """Convert analysis results to dictionary."""

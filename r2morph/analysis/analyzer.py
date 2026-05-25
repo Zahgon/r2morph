@@ -76,28 +76,7 @@ class BinaryAnalyzer:
         Returns:
             List of candidate locations with metadata
         """
-        candidates = []
-        functions = self.get_functions_list()
-
-        for func in functions:
-            if func.size < MINIMUM_FUNCTION_SIZE:
-                continue
-
-            instructions = self.get_instructions_for_function(func.address)
-
-            for _i, insn in enumerate(instructions):
-                if not (insn.is_jump() or insn.is_call() or insn.is_ret()):
-                    candidates.append(
-                        {
-                            "address": insn.address,
-                            "function": func.name,
-                            "instruction": str(insn),
-                            "type": "nop_insertion",
-                        }
-                    )
-
-        logger.info(f"Found {len(candidates)} NOP insertion candidates")
-        return candidates
+        pass
 
     def find_substitution_candidates(self) -> list[dict[str, Any]]:
         """
@@ -106,31 +85,7 @@ class BinaryAnalyzer:
         Returns:
             List of candidate instructions with metadata
         """
-        candidates = []
-        functions = self.get_functions_list()
-
-        substitutable_mnemonics = ["mov", "add", "sub", "xor", "inc", "dec"]
-
-        for func in functions:
-            if func.size < MINIMUM_FUNCTION_SIZE:
-                continue
-
-            instructions = self.get_instructions_for_function(func.address)
-
-            for insn in instructions:
-                if insn.mnemonic.lower() in substitutable_mnemonics:
-                    candidates.append(
-                        {
-                            "address": insn.address,
-                            "function": func.name,
-                            "instruction": str(insn),
-                            "mnemonic": insn.mnemonic,
-                            "type": "substitution",
-                        }
-                    )
-
-        logger.info(f"Found {len(candidates)} substitution candidates")
-        return candidates
+        pass
 
     def get_statistics(self) -> dict[str, Any]:
         """
@@ -172,17 +127,4 @@ class BinaryAnalyzer:
         Returns:
             List of candidate functions for mutation
         """
-        functions = self.get_functions_list()
-        candidates = []
-
-        for func in functions:
-            if func.size < min_size:
-                continue
-
-            if func.name.startswith("sym.imp."):
-                continue
-
-            candidates.append(func)
-
-        logger.info(f"Identified {len(candidates)} hot functions for mutation")
-        return candidates
+        pass

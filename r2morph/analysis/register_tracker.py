@@ -100,89 +100,23 @@ class RegTracker:
         self._stack: OrderedDict[str, StackEntry] = OrderedDict()
         self._stack_depth: int = 0
 
-    def store_register(self, reg: str, restore_code: bytes) -> None:
-        if reg in self._stack:
-            return
-        self._stack[reg] = StackEntry(register=reg, restore_code=restore_code, size=8)
-        self._stack_depth += 1
 
-    def restore_register(self, reg: str) -> Optional[bytes]:
-        if reg not in self._stack:
-            return None
-        entry = self._stack.pop(reg)
-        self._stack_depth -= 1
-        return entry.restore_code
 
-    def is_stored(self, reg: str) -> bool:
-        return reg in self._stack
 
-    def get_stored_registers(self) -> list[str]:
-        return list(self._stack.keys())
 
-    def get_top_stack_register(self) -> tuple[Optional[str], bytes]:
-        if not self._stack:
-            return None, b""
-        reg = list(self._stack.keys())[-1]
-        return reg, self._stack[reg].restore_code
 
-    def get_stack_depth(self) -> int:
-        return self._stack_depth
 
     def clear(self) -> None:
         self._stack.clear()
         self._stack_depth = 0
 
-    def get_subregisters(self, reg: str) -> Optional[tuple]:
-        return self.X86_64_GPR.get(reg)
 
-    def get_register_size(self, reg: str) -> int:
-        for size, regs in self.X86_64_REG_SIZES.items():
-            if reg in regs:
-                return size
-        return 0
 
-    def is_preserved_reg(self, reg: str) -> bool:
-        base_reg = self._get_base_register(reg)
-        return base_reg in self.PRESERVED_REGS
 
-    def is_scratch_reg(self, reg: str) -> bool:
-        base_reg = self._get_base_register(reg)
-        return base_reg in self.SCRATCH_REGS
 
-    def _get_base_register(self, reg: str) -> str:
-        reg_lower = reg.lower()
-        for base, subregs in self.X86_64_GPR.items():
-            if reg_lower == base or reg_lower in subregs:
-                return base
-        return reg_lower
 
-    def get_compatible_registers(self, reg: str, exclude_stored: bool = False) -> list[str]:
-        self._get_base_register(reg)
-        size = self.get_register_size(reg)
 
-        if size not in self.X86_64_REG_SIZES:
-            return []
 
-        compatible = []
-        for r in self.X86_64_REG_SIZES[size]:
-            if exclude_stored and self.is_stored(self._get_base_register(r)):
-                continue
-            if r != reg:
-                compatible.append(r)
-
-        return compatible
-
-    def get_register_weights(self) -> tuple[list[str], list[int]]:
-        regs = list(self.REG_WEIGHTS.keys())
-        weights = [self.REG_WEIGHTS[r][0] for r in regs]
-        return regs, weights
-
-    def get_subregister_weights(self, reg: str) -> tuple[tuple[str | None, ...], tuple[int, ...]] | None:
-        if reg not in self.X86_64_GPR:
-            return None
-        subregs: tuple[str | None, ...] = (reg,) + self.X86_64_GPR[reg]
-        weights: tuple[int, ...] = (self.REG_WEIGHTS[reg][0],) + self.REG_WEIGHTS[reg][1]
-        return subregs, weights
 
 
 REGISTER_SIZE_FLAGS = {

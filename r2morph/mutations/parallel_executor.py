@@ -98,15 +98,7 @@ class ParallelMutator:
         Returns:
             True if mutations are independent
         """
-        region1_start = mutation1.start_address
-        region1_end = mutation1.end_address
-        region2_start = mutation2.start_address
-        region2_end = mutation2.end_address
-
-        if region1_end < region2_start or region2_end < region1_start:
-            return True
-
-        return False
+        pass
 
     def _get_function_chunk(
         self, functions: list[dict[str, Any]], start_idx: int, end_idx: int
@@ -122,7 +114,7 @@ class ParallelMutator:
         Returns:
             Slice of functions
         """
-        return functions[start_idx:end_idx]
+        pass
 
     def _create_tasks(
         self,
@@ -181,34 +173,7 @@ class ParallelMutator:
         Returns:
             MutationResult with task outcome
         """
-        result = MutationResult()
-
-        try:
-            # Serialize file writes to prevent concurrent binary corruption
-            with _binary_write_lock, Binary(binary_path, flags=["-2"], writable=True) as binary:
-                binary.analyze()
-
-                functions = [f for f in binary.get_functions() if f.get("addr", 0) in task.function_addresses]
-
-                if not functions:
-                    result.success = True
-                    return result
-
-                pass_result = task.pass_instance.apply(binary)
-
-                result.success = pass_result.get("success", True)
-                result.mutations_applied = pass_result.get("mutations_applied", 0)
-                result.metadata = pass_result
-
-                records = task.pass_instance.get_records()
-                result.records = records
-
-        except Exception as e:
-            result.success = False
-            result.errors.append(f"Task failed: {e}")
-            logger.error(f"Parallel task {task.pass_name} failed: {e}")
-
-        return result
+        pass
 
     def execute_parallel(
         self,
@@ -308,22 +273,7 @@ class ParallelMutator:
         Returns:
             Estimated speedup factor
         """
-        enabled_count = sum(1 for p in passes if p.enabled)
-
-        if enabled_count == 0:
-            return 1.0
-
-        chunk_count = max(1, function_count // self.chunk_size)
-        task_count = enabled_count * chunk_count
-
-        if task_count <= 1:
-            return 1.0
-
-        effective_workers = min(self.max_workers, task_count)
-
-        overhead_factor = 1.0 + (0.1 * effective_workers)
-
-        return float(effective_workers / overhead_factor)
+        pass
 
 
 def create_parallel_executor(config: dict[str, Any] | None = None) -> ParallelMutator:

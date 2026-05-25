@@ -42,7 +42,7 @@ class ReferenceUpdater:
 
     def _get_endianness(self) -> "ByteOrder":
         """Detect binary endianness from architecture info."""
-        return get_endianness(self.binary)
+        pass
 
     def update_jump_target(self, jump_addr: int, old_target: int, new_target: int) -> bool:
         """
@@ -56,59 +56,7 @@ class ReferenceUpdater:
         Returns:
             True if successful
         """
-        assert self.binary.r2 is not None
-        try:
-            insn_json = self.binary.r2.cmd(f"aoj 1 @ 0x{jump_addr:x}")
-            insns = json.loads(insn_json)
-            if not insns:
-                return False
-
-            insn = insns[0]
-            mnemonic = insn.get("mnemonic", "")
-            size = insn.get("size", 0)
-            jump_type = insn.get("type", "")
-
-            if "rel" in jump_type.lower() or "cjmp" in jump_type.lower():
-                new_offset = new_target - (jump_addr + size)
-
-                new_insn = f"{mnemonic} {new_offset}"
-
-                new_bytes = self.binary.assemble(new_insn)
-
-                if new_bytes and len(new_bytes) <= size:
-                    if not self.binary.write_bytes(jump_addr, new_bytes):
-                        logger.warning(f"write_bytes failed for jump at 0x{jump_addr:x}")
-                        return False
-
-                    if len(new_bytes) < size:
-                        self.binary.nop_fill(jump_addr + len(new_bytes), size - len(new_bytes))
-
-                    self.updated_refs.add(jump_addr)
-                    logger.debug(f"Updated jump at 0x{jump_addr:x} -> 0x{new_target:x}")
-                    return True
-                else:
-                    logger.warning(f"New jump instruction too large at 0x{jump_addr:x}")
-                    return False
-
-            else:
-                new_insn = f"{mnemonic} 0x{new_target:x}"
-                new_bytes = self.binary.assemble(new_insn)
-
-                if new_bytes and len(new_bytes) <= size:
-                    if not self.binary.write_bytes(jump_addr, new_bytes):
-                        logger.warning(f"write_bytes failed for jump at 0x{jump_addr:x}")
-                        return False
-                    if len(new_bytes) < size:
-                        self.binary.nop_fill(jump_addr + len(new_bytes), size - len(new_bytes))
-
-                    self.updated_refs.add(jump_addr)
-                    logger.debug(f"Updated absolute jump at 0x{jump_addr:x} -> 0x{new_target:x}")
-                    return True
-
-        except (ValueError, OSError, BrokenPipeError, json.JSONDecodeError) as e:
-            logger.error(f"Failed to update jump at 0x{jump_addr:x}: {e}")
-
-        return False
+        pass
 
     def update_call_target(self, call_addr: int, old_target: int, new_target: int) -> bool:
         """
@@ -122,39 +70,7 @@ class ReferenceUpdater:
         Returns:
             True if successful
         """
-        assert self.binary.r2 is not None
-        try:
-            insn_json = self.binary.r2.cmd(f"aoj 1 @ 0x{call_addr:x}")
-            insns = json.loads(insn_json)
-            if not insns:
-                return False
-
-            insn = insns[0]
-            size = insn.get("size", 0)
-            call_type = insn.get("type", "")
-
-            if "rel" in call_type.lower() or "call" in call_type.lower():
-                new_offset = new_target - (call_addr + size)
-
-                new_insn = f"call {new_offset}"
-
-                new_bytes = self.binary.assemble(new_insn)
-
-                if new_bytes and len(new_bytes) <= size:
-                    if not self.binary.write_bytes(call_addr, new_bytes):
-                        logger.warning(f"write_bytes failed for call at 0x{call_addr:x}")
-                        return False
-                    if len(new_bytes) < size:
-                        self.binary.nop_fill(call_addr + len(new_bytes), size - len(new_bytes))
-
-                    self.updated_refs.add(call_addr)
-                    logger.debug(f"Updated call at 0x{call_addr:x} -> 0x{new_target:x}")
-                    return True
-
-        except (ValueError, OSError, BrokenPipeError, json.JSONDecodeError) as e:
-            logger.error(f"Failed to update call at 0x{call_addr:x}: {e}")
-
-        return False
+        pass
 
     def update_data_pointer(self, ptr_addr: int, old_value: int, new_value: int, ptr_size: int | None = None) -> bool:
         """
@@ -169,45 +85,7 @@ class ReferenceUpdater:
         Returns:
             True if successful
         """
-        assert self.binary.r2 is not None
-        try:
-            if ptr_size is None:
-                arch_info = self.binary.get_arch_info()
-                ptr_size = arch_info["bits"] // 8
-
-            current_hex = self.binary.r2.cmd(f"p8 {ptr_size} @ 0x{ptr_addr:x}")
-            if current_hex is None:
-                logger.error(f"r2 returned None for pointer at 0x{ptr_addr:x}")
-                return False
-            current_hex = current_hex.strip()
-            if not current_hex:
-                logger.error(f"Empty response for pointer at 0x{ptr_addr:x}")
-                return False
-            try:
-                current_bytes = bytes.fromhex(current_hex)
-            except ValueError as e:
-                logger.error(f"Failed to parse hex at 0x{ptr_addr:x}: {e}")
-                return False
-            current_value = int.from_bytes(current_bytes, byteorder=self._get_endianness())
-
-            if current_value == old_value:
-                new_bytes = new_value.to_bytes(ptr_size, byteorder=self._get_endianness())
-                if not self.binary.write_bytes(ptr_addr, new_bytes):
-                    logger.warning(f"write_bytes failed for pointer at 0x{ptr_addr:x}")
-                    return False
-
-                self.updated_refs.add(ptr_addr)
-                logger.debug(f"Updated pointer at 0x{ptr_addr:x}: 0x{old_value:x} -> 0x{new_value:x}")
-                return True
-            else:
-                logger.warning(
-                    f"Pointer value mismatch at 0x{ptr_addr:x}: expected 0x{old_value:x}, got 0x{current_value:x}"
-                )
-
-        except (ValueError, OSError, BrokenPipeError) as e:
-            logger.error(f"Failed to update pointer at 0x{ptr_addr:x}: {e}")
-
-        return False
+        pass
 
     def find_references_to(self, target_addr: int) -> list[dict]:
         """
@@ -219,27 +97,7 @@ class ReferenceUpdater:
         Returns:
             List of reference dicts
         """
-        logger.debug(f"Finding references to 0x{target_addr:x}")
-
-        refs = []
-
-        assert self.binary.r2 is not None
-        xrefs_json = self.binary.r2.cmd(f"axtj @ 0x{target_addr:x}")
-        if xrefs_json:
-            import json
-
-            try:
-                xrefs = json.loads(xrefs_json)
-                refs.extend(xrefs)
-            except json.JSONDecodeError as exc:
-                logger.warning(
-                    "r2 returned non-JSON xref output for 0x%x (%s); references will be incomplete",
-                    target_addr,
-                    exc,
-                )
-
-        logger.debug(f"Found {len(refs)} references to 0x{target_addr:x}")
-        return refs
+        pass
 
     def update_all_references_to(self, old_addr: int, new_addr: int) -> int:
         """
@@ -252,29 +110,4 @@ class ReferenceUpdater:
         Returns:
             Number of references updated
         """
-        logger.info(f"Updating all references: 0x{old_addr:x} -> 0x{new_addr:x}")
-
-        refs = self.find_references_to(old_addr)
-        updated = 0
-
-        for ref in refs:
-            ref_addr = ref.get("from")
-            ref_type = ref.get("type", "").upper()
-
-            if not ref_addr:
-                continue
-
-            success = False
-
-            if ref_type in ["CALL", "C"]:
-                success = self.update_call_target(ref_addr, old_addr, new_addr)
-            elif ref_type in ["JMP", "J"]:
-                success = self.update_jump_target(ref_addr, old_addr, new_addr)
-            elif ref_type in ["DATA", "D"]:
-                success = self.update_data_pointer(ref_addr, old_addr, new_addr)
-
-            if success:
-                updated += 1
-
-        logger.info(f"Updated {updated}/{len(refs)} references")
-        return updated
+        pass

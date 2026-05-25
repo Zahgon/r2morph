@@ -396,17 +396,7 @@ class SelfModifyingCodePass(MutationPass):
 
     def _generate_decrypt_stub(self, key: bytes, data_addr: int, data_size: int, arch: str = "x64") -> str:
         """Generate decryption stub assembly."""
-        if self.polymorphic:
-            seed = random.randint(0, 0xFFFFFFFF)
-            if arch == "x64":
-                return generate_polymorphic_stub_x64(key, data_size, seed)
-            else:
-                return generate_polymorphic_stub_x64(key, data_size, seed)
-        else:
-            if arch == "x64":
-                return generate_xor_decrypt_stub_x64(key, data_addr, data_size).decode()
-            else:
-                return generate_xor_decrypt_stub_x86(key, data_addr, data_size).decode()
+        pass
 
     def _find_encryptable_functions(self, binary: Any) -> list[dict[str, Any]]:
         """Find functions suitable for encryption."""
@@ -711,4 +701,4 @@ def create_packed_binary(
 
 def calculate_unpacking_offset(stub_size: int, alignment: int = 16) -> int:
     """Calculate offset for unpacked code after stub."""
-    return (stub_size + alignment - 1) & ~(alignment - 1)
+    pass

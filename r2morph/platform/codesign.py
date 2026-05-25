@@ -61,19 +61,15 @@ class CodeSigner:
 
     def check_signature(self, binary_path: Path) -> bool:
         """Check if a binary's signature is valid."""
-        return self.verify(binary_path)
+        pass
 
     def is_signed(self, binary_path: Path) -> bool:
         """Return True if the binary has a valid signature."""
-        return self.verify(binary_path)
+        pass
 
     def needs_signing(self, binary_path: Path) -> bool:
         """Return True if the binary should be signed for the current platform."""
-        if self.platform == "Darwin":
-            return not self.verify(binary_path)
-        if self.platform == "Windows":
-            return not self.verify(binary_path)
-        return False
+        pass
 
     def sign_binary(
         self,
@@ -197,46 +193,15 @@ class CodeSigner:
         Returns:
             True if signature is valid
         """
-        if self.platform == "Darwin":
-            return self._verify_macos(binary_path)
-        elif self.platform == "Windows":
-            return self._verify_windows(binary_path)
-        else:
-            return True
+        pass
 
     def _verify_macos(self, binary_path: Path) -> bool:
         """Verify macOS code signature."""
-        try:
-            result = subprocess.run(
-                ["codesign", "--verify", "--deep", "--strict", str(binary_path)],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-
-            return result.returncode == 0
-
-        except subprocess.SubprocessError:
-            return False
+        pass
 
     def _verify_windows(self, binary_path: Path) -> bool:
         """Verify Windows code signature."""
-        try:
-            if shutil.which("signtool") is None:
-                logger.warning("signtool not available on PATH")
-                return False
-
-            result = subprocess.run(
-                ["signtool", "verify", "/pa", str(binary_path)],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-
-            return result.returncode == 0
-
-        except (subprocess.SubprocessError, FileNotFoundError):
-            return False
+        pass
 
     def remove_signature(self, binary_path: Path) -> bool:
         """

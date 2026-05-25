@@ -154,57 +154,8 @@ def clear_pattern_pools() -> None:
     _pattern_pool_registry.clear()
 
 
-def match_mov_reg_reg_reg64_reg16(instructions: list[Instruction]) -> list[MatchResult]:
-    from r2morph.analysis.register_tracker import REG_SIZES_MAP, REG_64, REG_16
-
-    matches = []
-
-    for idx, ins in enumerate(instructions):
-        if not hasattr(ins, "mnemonic") or ins.mnemonic != "mov":
-            continue
-
-        if not hasattr(ins, "operand_1") or not hasattr(ins, "operand_2"):
-            continue
-
-        op1 = ins.operand_1 if hasattr(ins, "operand_1") else ""
-        op2 = ins.operand_2 if hasattr(ins, "operand_2") else ""
-
-        if not isinstance(op1, str) or not isinstance(op2, str):
-            continue
-
-        op1_size = REG_SIZES_MAP.get(op1.lower() if op1 else "", 0)
-        op2_size = REG_SIZES_MAP.get(op2.lower() if op2 else "", 0)
-
-        if (op1_size & (REG_64 | REG_16)) and (op2_size & (REG_64 | REG_16)):
-            matches.append(MatchResult(index=idx, length=1, operands=[op1, op2]))
-
-    return matches
 
 
-def match_push_pop_reg64_reg16(instructions: list[Instruction]) -> list[MatchResult]:
-    from r2morph.analysis.register_tracker import REG_SIZES_MAP
-
-    matches = []
-
-    for idx in range(len(instructions) - 1):
-        ins1 = instructions[idx]
-        ins2 = instructions[idx + 1]
-
-        if not hasattr(ins1, "mnemonic") or ins1.mnemonic != "push":
-            continue
-        if not hasattr(ins2, "mnemonic") or ins2.mnemonic != "pop":
-            continue
-
-        op1 = getattr(ins1, "operand_1", "")
-        op2 = getattr(ins2, "operand_1", "")
-
-        if not isinstance(op1, str) or not isinstance(op2, str):
-            continue
-
-        if REG_SIZES_MAP.get(op1.lower() if op1 else "", 0) and REG_SIZES_MAP.get(op2.lower() if op2 else "", 0):
-            matches.append(MatchResult(index=idx, length=2, operands=[op2, op1]))
-
-    return matches
 
 
 def match_mov_reg_0_all(instructions: list[Instruction]) -> list[MatchResult]:
@@ -271,26 +222,12 @@ def match_xor_reg_reg_all(instructions: list[Instruction]) -> list[MatchResult]:
     return matches
 
 
-def generator_mov_reg_reg(operands: list[Any], os_type: str) -> list[Instruction]:
-    dst, src = operands[0], operands[1]
-    return [_create_instruction("mov", [dst, src], "mov")]
 
 
-def generator_push_pop_reg(operands: list[Any], os_type: str) -> list[Instruction]:
-    dst, src = operands[0], operands[1]
-    push = _create_instruction("push", [src], "push")
-    pop = _create_instruction("pop", [dst], "pop")
-    return [push, pop]
 
 
-def generator_xor_reg_reg(operands: list[Any], os_type: str) -> list[Instruction]:
-    reg = operands[0]
-    return [_create_instruction("xor", [reg, reg], "xor")]
 
 
-def generator_mov_reg_0(operands: list[Any], os_type: str) -> list[Instruction]:
-    reg = operands[0]
-    return [_create_instruction("mov", [reg, "0"], "mov")]
 
 
 def _create_instruction(mnemonic: str, operands: list[str], ins_type: str = "") -> Instruction:
@@ -341,36 +278,6 @@ def match_and_reg_0_all(instructions: list[Instruction]) -> list[MatchResult]:
     return matches
 
 
-def match_sub_reg_same(instructions: list[Instruction]) -> list[MatchResult]:
-    from r2morph.analysis.register_tracker import REG_SIZES_MAP
-
-    matches = []
-
-    for idx in range(len(instructions) - 1):
-        ins = instructions[idx]
-        next_ins = instructions[idx + 1]
-
-        if not hasattr(ins, "mnemonic") or ins.mnemonic != "sub":
-            continue
-
-        op1 = getattr(ins, "operand_1", "")
-        op2 = getattr(ins, "operand_2", "")
-
-        if not isinstance(op1, str) or not isinstance(op2, str):
-            continue
-
-        if not REG_SIZES_MAP.get(op1.lower() if op1 else "", 0):
-            continue
-
-        if op1.lower() != op2.lower():
-            continue
-
-        if hasattr(next_ins, "type") and next_ins.type == "cjmp":
-            continue
-
-        matches.append(MatchResult(index=idx, length=1, operands=[op1]))
-
-    return matches
 
 
 def match_inc_reg(instructions: list[Instruction]) -> list[MatchResult]:
@@ -466,39 +373,6 @@ def match_shl_reg_imm(instructions: list[Instruction]) -> list[MatchResult]:
     return matches
 
 
-def match_shr_reg_imm(instructions: list[Instruction]) -> list[MatchResult]:
-    from r2morph.analysis.register_tracker import REG_SIZES_MAP, REG_64, REG_32
-
-    matches = []
-    shift_values = {"1", "2", "4", "8"}
-
-    for idx in range(len(instructions) - 1):
-        ins = instructions[idx]
-        next_ins = instructions[idx + 1]
-
-        if not hasattr(ins, "mnemonic") or ins.mnemonic != "shr":
-            continue
-
-        op1 = getattr(ins, "operand_1", "")
-        op2 = getattr(ins, "operand_2", "")
-
-        if not isinstance(op1, str) or not isinstance(op2, str):
-            continue
-
-        reg_size = REG_SIZES_MAP.get(op1.lower() if op1 else "", 0)
-        if not (reg_size & (REG_64 | REG_32)):
-            continue
-
-        op2_clean = op2.strip().lower().lstrip("0x")
-        if op2_clean not in shift_values and op2 not in shift_values:
-            continue
-
-        if hasattr(next_ins, "type") and next_ins.type == "cjmp":
-            continue
-
-        matches.append(MatchResult(index=idx, length=1, operands=[op1, op2]))
-
-    return matches
 
 
 def match_add_reg_imm_small(instructions: list[Instruction]) -> list[MatchResult]:
@@ -537,180 +411,30 @@ def match_add_reg_imm_small(instructions: list[Instruction]) -> list[MatchResult
     return matches
 
 
-def match_sub_reg_imm_small(instructions: list[Instruction]) -> list[MatchResult]:
-    from r2morph.analysis.register_tracker import REG_SIZES_MAP
-
-    matches = []
-
-    for idx in range(len(instructions) - 1):
-        ins = instructions[idx]
-        next_ins = instructions[idx + 1]
-
-        if not hasattr(ins, "mnemonic") or ins.mnemonic != "sub":
-            continue
-
-        op1 = getattr(ins, "operand_1", "")
-        op2 = getattr(ins, "operand_2", "")
-
-        if not isinstance(op1, str) or not isinstance(op2, str):
-            continue
-
-        if not REG_SIZES_MAP.get(op1.lower() if op1 else "", 0):
-            continue
-
-        try:
-            imm_val = int(op2, 0) if op2.startswith("0x") else int(op2)
-            if not (1 <= imm_val <= 8):
-                continue
-        except ValueError:
-            continue
-
-        if hasattr(next_ins, "type") and next_ins.type == "cjmp":
-            continue
-
-        matches.append(MatchResult(index=idx, length=1, operands=[op1, op2]))
-
-    return matches
 
 
-def match_lea_reg_off(instructions: list[Instruction]) -> list[MatchResult]:
-    from r2morph.analysis.register_tracker import REG_SIZES_MAP, REG_64
-
-    matches = []
-
-    for idx in range(len(instructions) - 1):
-        ins = instructions[idx]
-        next_ins = instructions[idx + 1]
-
-        if not hasattr(ins, "mnemonic") or ins.mnemonic != "lea":
-            continue
-
-        op1 = getattr(ins, "operand_1", "")
-        op2 = getattr(ins, "operand_2", "")
-
-        if not isinstance(op1, str) or not isinstance(op2, str):
-            continue
-
-        reg_size = REG_SIZES_MAP.get(op1.lower() if op1 else "", 0)
-        if not (reg_size & REG_64):
-            continue
-
-        if not op2.startswith("[") or not op2.endswith("]"):
-            continue
-
-        if hasattr(next_ins, "type") and next_ins.type == "cjmp":
-            continue
-
-        matches.append(MatchResult(index=idx, length=1, operands=[op1, op2]))
-
-    return matches
 
 
-def generator_and_reg_0(operands: list[Any], os_type: str) -> list[Instruction]:
-    reg = operands[0]
-    return [_create_instruction("and", [reg, "0"], "and")]
 
 
-def generator_sub_reg_same(operands: list[Any], os_type: str) -> list[Instruction]:
-    reg = operands[0]
-    return [_create_instruction("sub", [reg, reg], "sub")]
 
 
-def generator_inc_to_add(operands: list[Any], os_type: str) -> list[Instruction]:
-    reg = operands[0]
-    return [_create_instruction("add", [reg, "1"], "add")]
 
 
-def generator_dec_to_sub(operands: list[Any], os_type: str) -> list[Instruction]:
-    reg = operands[0]
-    return [_create_instruction("sub", [reg, "1"], "sub")]
 
 
-def generator_add_to_lea(operands: list[Any], os_type: str) -> list[Instruction]:
-    reg = operands[0]
-    return [_create_instruction("lea", [reg, f"[{reg} + 1]"], "lea")]
 
 
-def generator_shl_to_lea(operands: list[Any], os_type: str) -> list[Instruction]:
-    reg = operands[0]
-    shift = operands[1] if len(operands) > 1 else "1"
-    try:
-        shift_val = int(shift, 0) if shift.startswith("0x") else int(shift)
-        multiplier = 1 << shift_val
-    except ValueError:
-        multiplier = 2
-    return [_create_instruction("lea", [reg, f"[{reg} * {multiplier}]"], "lea")]
 
 
-def generator_push_pop_with_junk(operands: list[Any], os_type: str) -> list[Instruction]:
-    from r2morph.mutations.junk_generator import create_junk_generator
-
-    dst, src = operands[0], operands[1]
-
-    push = _create_instruction("push", [src], "push")
-
-    junk_gen = create_junk_generator(os_type)
-    junk_size = 32
-    junk = junk_gen.generate_junk_code(junk_size)
-
-    pop = _create_instruction("pop", [dst], "pop")
-
-    junk_ins = _create_instruction("db", [junk.hex()], "db")
-    junk_ins.bytes = junk.hex()
-    junk_ins.opcode = f"; junk code ({len(junk)} bytes)"
-
-    return [push, junk_ins, pop]
 
 
-def generator_xor_with_junk(operands: list[Any], os_type: str) -> list[Instruction]:
-    from r2morph.mutations.junk_generator import create_junk_generator
-
-    reg = operands[0]
-
-    junk_gen = create_junk_generator(os_type)
-    junk_size = 24
-    junk = junk_gen.generate_junk_code(junk_size)
-
-    xor_ins = _create_instruction("xor", [reg, reg], "xor")
-
-    junk_ins = _create_instruction("db", [junk.hex()], "db")
-    junk_ins.bytes = junk.hex()
-    junk_ins.opcode = f"; junk code ({len(junk)} bytes)"
-
-    return [xor_ins, junk_ins]
 
 
-def generator_mov_with_junk_before(operands: list[Any], os_type: str) -> list[Instruction]:
-    from r2morph.mutations.junk_generator import create_junk_generator
-
-    if len(operands) == 1:
-        reg, src = operands[0], "0"
-    else:
-        reg, src = operands[0], operands[1]
-
-    junk_gen = create_junk_generator(os_type)
-    junk_size = 28
-    junk = junk_gen.generate_junk_code(junk_size)
-
-    junk_ins = _create_instruction("db", [junk.hex()], "db")
-    junk_ins.bytes = junk.hex()
-    junk_ins.opcode = f"; junk code ({len(junk)} bytes)"
-
-    mov_ins = _create_instruction("mov", [reg, src], "mov")
-
-    return [junk_ins, mov_ins]
 
 
-def generator_add_inc_chain(operands: list[Any], os_type: str) -> list[Instruction]:
-    reg = operands[0]
-    inc_ins = _create_instruction("inc", [reg], "inc")
-    return [inc_ins]
 
 
-def generator_dec_chain(operands: list[Any], os_type: str) -> list[Instruction]:
-    reg = operands[0]
-    dec_ins = _create_instruction("dec", [reg], "dec")
-    return [dec_ins]
 
 
 and_reg_0_pool = MutationPatternPool(

@@ -52,7 +52,7 @@ class MockDisassembler:
             command: The command string to match.
             response: The response to return when the command is executed.
         """
-        self._responses[command] = response
+        pass
 
     def set_responses(self, responses: dict[str, Any]) -> None:
         """Set multiple responses at once.
@@ -60,11 +60,11 @@ class MockDisassembler:
         Args:
             responses: Dictionary mapping commands to their responses.
         """
-        self._responses.update(responses)
+        pass
 
     def clear_responses(self) -> None:
         """Clear all configured responses."""
-        self._responses.clear()
+        pass
 
     def open(self, path: Path, flags: list[str] | None = None) -> None:
         """Open a mock binary for analysis.
@@ -73,10 +73,7 @@ class MockDisassembler:
             path: Path to the binary (not actually accessed).
             flags: Optional flags (stored for inspection in tests).
         """
-        self._is_open = True
-        self._opened_path = path
-        self._opened_flags = flags or []
-        self._command_history.clear()
+        pass
 
     def close(self) -> None:
         """Close the mock connection."""
@@ -125,24 +122,24 @@ class MockDisassembler:
         Returns:
             True if open() was called without a subsequent close().
         """
-        return self._is_open
+        pass
 
     # Test helper methods
 
     @property
     def opened_path(self) -> Path | None:
         """Get the path that was passed to open()."""
-        return self._opened_path
+        pass
 
     @property
     def opened_flags(self) -> list[str] | None:
         """Get the flags that were passed to open()."""
-        return self._opened_flags
+        pass
 
     @property
     def command_history(self) -> list[str]:
         """Get the list of commands that were executed."""
-        return self._command_history.copy()
+        pass
 
     def assert_command_called(self, command: str) -> None:
         """Assert that a specific command was called.
@@ -153,8 +150,7 @@ class MockDisassembler:
         Raises:
             AssertionError: If the command was not called.
         """
-        if command not in self._command_history:
-            raise AssertionError(f"Command '{command}' was not called. " f"Called commands: {self._command_history}")
+        pass
 
     def assert_command_not_called(self, command: str) -> None:
         """Assert that a specific command was not called.
@@ -165,10 +161,7 @@ class MockDisassembler:
         Raises:
             AssertionError: If the command was called.
         """
-        if command in self._command_history:
-            raise AssertionError(
-                f"Command '{command}' was unexpectedly called. " f"Called commands: {self._command_history}"
-            )
+        pass
 
 
 # Type assertion to verify MockDisassembler implements DisassemblerInterface
@@ -178,4 +171,4 @@ def _verify_protocol() -> DisassemblerInterface:
     Never called; mypy checks the return type to assert structural
     conformance of MockDisassembler to DisassemblerInterface.
     """
-    return MockDisassembler()
+    pass

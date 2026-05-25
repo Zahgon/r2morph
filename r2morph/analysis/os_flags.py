@@ -152,41 +152,17 @@ class OSFlags:
             self.flags = LINFLAGS.copy()
         self._os_type = os_type
 
-    @property
-    def os_type(self) -> str:
-        return self._os_type
 
-    def get_random_flag(self) -> int:
-        import random
 
-        return random.choice(self.flags)
 
-    def get_flags_count(self) -> int:
-        return len(self.flags)
 
-    def get_flag_by_index(self, index: int) -> int:
-        return self.flags[index % len(self.flags)]
-
-    def get_flags_for_size(self, size_bits: int = 32) -> list[int]:
-        max_val = (1 << size_bits) - 1
-        return [f for f in self.flags if f <= max_val]
 
     def get_safe_imm32(self) -> int:
         import random
 
         return random.choice(self.flags)
 
-    def get_safe_imm16(self) -> int:
-        import random
 
-        flags_16 = [f for f in self.flags if f <= 0xFFFF]
-        return random.choice(flags_16) if flags_16 else 0
-
-    def get_safe_imm8(self) -> int:
-        import random
-
-        flags_8 = [f for f in self.flags if f <= 0xFF]
-        return random.choice(flags_8) if flags_8 else 0
 
 
 WINDOWS_FLAGS = OSFlags("windows")

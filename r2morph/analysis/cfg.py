@@ -92,15 +92,15 @@ class BasicBlock:
 
     def is_conditional(self) -> bool:
         """Check if this is a conditional branch block."""
-        return self.block_type == BlockType.CONDITIONAL or len(self.successors) > 1
+        pass
 
     def is_return(self) -> bool:
         """Check if this block ends with a return."""
-        return self.block_type == BlockType.RETURN or len(self.successors) == 0
+        pass
 
     def is_tail_call_source(self) -> bool:
         """Check if this block contains a tail call."""
-        return EdgeType.TAIL_CALL in self.edge_types.values()
+        pass
 
     def get_terminal_instruction(self) -> dict[str, Any] | None:
         """Get the last instruction in the block."""
@@ -110,14 +110,7 @@ class BasicBlock:
 
     def get_jump_targets(self) -> list[int]:
         """Get all jump targets from this block."""
-        targets = []
-        for insn in self.instructions:
-            mnemonic = insn.get("type", "").lower()
-            if mnemonic in ("jmp", "cjmp", "call", "ujmp"):
-                jump_addr = insn.get("jump")
-                if jump_addr and isinstance(jump_addr, int):
-                    targets.append(jump_addr)
-        return targets
+        pass
 
 
 @dataclass
@@ -180,7 +173,7 @@ class ControlFlowGraph:
 
     def add_exception_edge(self, edge: ExceptionEdge) -> None:
         """Add an exception handling edge."""
-        self.exception_edges.append(edge)
+        pass
 
     def add_tail_call(self, tail_call: TailCall) -> None:
         """Add a detected tail call."""
@@ -192,10 +185,7 @@ class ControlFlowGraph:
 
     def get_successors(self, address: int) -> list[BasicBlock]:
         """Get successor blocks of a given block."""
-        block = self.blocks.get(address)
-        if not block:
-            return []
-        return [self.blocks[addr] for addr in block.successors if addr in self.blocks]
+        pass
 
     def get_predecessors(self, address: int) -> list[BasicBlock]:
         """Get predecessor blocks of a given block."""
@@ -278,12 +268,7 @@ class ControlFlowGraph:
         Returns:
             Cyclomatic complexity value
         """
-        e = len(self.edges)
-        n = len(self.blocks)
-        p = 1
-
-        complexity = e - n + 2 * p
-        return max(1, complexity)
+        pass
 
     def to_dot(self) -> str:
         """
@@ -292,25 +277,7 @@ class ControlFlowGraph:
         Returns:
             DOT format string for visualization
         """
-        lines = [
-            "digraph CFG {",
-            "  node [shape=box, style=rounded];",
-            f'  label="{self.function_name} @ 0x{self.function_address:x}";',
-            "",
-        ]
-
-        for addr, block in self.blocks.items():
-            label = f"0x{addr:x}\\n{len(block.instructions)} instructions"
-            color = "lightblue" if block == self.entry_block else "white"
-            shape = "box" if block.block_type == BlockType.NORMAL else "diamond"
-
-            lines.append(f'  "0x{addr:x}" [label="{label}", fillcolor={color}, style="filled,rounded", shape={shape}];')
-
-        for from_addr, to_addr in self.edges:
-            lines.append(f'  "0x{from_addr:x}" -> "0x{to_addr:x}";')
-
-        lines.append("}")
-        return "\n".join(lines)
+        pass
 
     def __repr__(self) -> str:
         return (
@@ -487,22 +454,7 @@ class CFGBuilder:
         Returns:
             List of detected ExceptionEdge instances
         """
-        exception_edges: list[ExceptionEdge] = []
-
-        arch_info = self.binary.get_arch_info()
-        binary_format = arch_info.get("format", "")
-
-        if binary_format.startswith("ELF"):
-            exception_edges = self._detect_elf_exception_edges(cfg, function_address)
-        elif binary_format in ("PE", "PE+"):
-            exception_edges = self._detect_pe_exception_edges(cfg, function_address)
-        elif binary_format in ("Mach-O", "Mach-O-64"):
-            exception_edges = self._detect_macho_exception_edges(cfg, function_address)
-
-        for edge in exception_edges:
-            cfg.add_exception_edge(edge)
-
-        return exception_edges
+        pass
 
     def _detect_elf_exception_edges(self, cfg: ControlFlowGraph, function_address: int) -> list[ExceptionEdge]:
         """
@@ -515,30 +467,7 @@ class CFGBuilder:
         Returns:
             List of ExceptionEdge instances
         """
-        exception_edges: list[ExceptionEdge] = []
-
-        try:
-            if self.binary.r2 is None:
-                return exception_edges
-            functions = self.binary.r2.cmdj("aflj")
-            if not functions:
-                return exception_edges
-
-            landing_pads = set()
-            for func in functions if isinstance(functions, list) else []:
-                func_addr = func.get("addr", func.get("offset", 0))
-                if func_addr == function_address:
-                    landing_pads.update(func.get("landing_pads", []))
-
-            blocks = list(cfg.blocks.values())
-            for block in blocks:
-                if block.address in landing_pads:
-                    block.block_type = BlockType.LANDING_PAD
-                    block.metadata["is_landing_pad"] = True
-        except (ValueError, OSError, BrokenPipeError, RuntimeError) as e:
-            logger.debug(f"Failed to detect ELF exception edges: {e}")
-
-        return exception_edges
+        pass
 
     def _detect_pe_exception_edges(self, cfg: ControlFlowGraph, function_address: int) -> list[ExceptionEdge]:
         """
@@ -551,9 +480,7 @@ class CFGBuilder:
         Returns:
             List of ExceptionEdge instances
         """
-        exception_edges: list[ExceptionEdge] = []
-
-        return exception_edges
+        pass
 
     def _detect_macho_exception_edges(self, cfg: ControlFlowGraph, function_address: int) -> list[ExceptionEdge]:
         """
@@ -566,9 +493,7 @@ class CFGBuilder:
         Returns:
             List of ExceptionEdge instances
         """
-        exception_edges: list[ExceptionEdge] = []
-
-        return exception_edges
+        pass
 
     def build_all_cfgs(self) -> dict[int, ControlFlowGraph]:
         """
@@ -577,25 +502,4 @@ class CFGBuilder:
         Returns:
             Dictionary mapping function address to CFG
         """
-        if not self.binary.is_analyzed():
-            logger.warning("Binary not analyzed, analyzing now...")
-            self.binary.analyze()
-
-        functions = self.binary.get_functions()
-        cfgs = {}
-
-        logger.info(f"Building CFGs for {len(functions)} functions...")
-
-        for func in functions:
-            addr = func.get("offset", 0)
-            name = func.get("name", f"func_{addr:x}")
-
-            try:
-                cfg = self.build_cfg(addr, name)
-                if cfg.blocks:
-                    cfgs[addr] = cfg
-            except (ValueError, OSError, BrokenPipeError, RuntimeError) as e:
-                logger.debug(f"Failed to build CFG for {name}: {e}")
-
-        logger.info(f"Successfully built {len(cfgs)} CFGs")
-        return cfgs
+        pass

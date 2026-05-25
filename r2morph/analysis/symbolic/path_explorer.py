@@ -212,8 +212,7 @@ class PathExplorer:
 
     def _setup_exploration_techniques(self) -> None:
         """Set up exploration techniques for different strategies."""
-        self.exploration_techniques[ExplorationStrategy.VM_HANDLER] = VMHandlerDetectionTechnique()
-        self.exploration_techniques[ExplorationStrategy.OPAQUE_PREDICATE] = OpaquePredicateDetectionTechnique()
+        pass
 
     def explore_function(
         self,
@@ -375,24 +374,4 @@ class PathExplorer:
         Returns:
             List of opaque predicate information
         """
-        logger.info(f"Detecting opaque predicates in function at 0x{function_addr:x}")
-
-        self.explore_function(function_addr, strategy=ExplorationStrategy.OPAQUE_PREDICATE, max_paths=200)
-
-        predicates = []
-        technique = self.exploration_techniques[ExplorationStrategy.OPAQUE_PREDICATE]
-
-        if isinstance(technique, OpaquePredicateDetectionTechnique):
-            for predicate_addr in technique.opaque_candidates:
-                outcomes = technique.branch_outcomes.get(predicate_addr, [])
-                predicates.append(
-                    {
-                        "address": predicate_addr,
-                        "always_taken": all(outcomes) if outcomes else None,
-                        "sample_count": len(outcomes),
-                        "confidence": min(1.0, len(outcomes) / 10.0),
-                    }
-                )
-
-        logger.info(f"Found {len(predicates)} potential opaque predicates")
-        return predicates
+        pass

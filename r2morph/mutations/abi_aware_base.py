@@ -263,12 +263,7 @@ class ABIAwareMutationPass(MutationPass):
         Returns:
             ABISnapshot or None if not enforcing ABI
         """
-        if not self.enforce_abi or self._abi_hook is None:
-            return None
-
-        snapshot = self._abi_hook.snapshot_function(function_address)
-        self._abi_snapshots[function_address] = snapshot
-        return snapshot
+        pass
 
     def validate_abi(
         self,
@@ -285,16 +280,7 @@ class ABIAwareMutationPass(MutationPass):
         Returns:
             ABICheckResult or None if not enforcing ABI
         """
-        if not self.enforce_abi or self._abi_hook is None:
-            return None
-
-        snapshot = self._abi_snapshots.get(function_address)
-        result = self._abi_hook.validate_function(function_address, mutation_regions, snapshot)
-
-        if not result.valid and self._abi_result is not None:
-            self._abi_result.new_violations += len(result.new_violations)
-
-        return result
+        pass
 
     def can_continue_after_abi_check(self, function_address: int) -> bool:
         """
@@ -306,17 +292,7 @@ class ABIAwareMutationPass(MutationPass):
         Returns:
             True if mutation can continue
         """
-        if not self.enforce_abi or self._abi_hook is None:
-            return True
-
-        if self._abi_hook.should_skip_mutation(function_address):
-            return False
-
-        if self.abi_action == ABIViolationAction.BLOCK:
-            if function_address in self._abi_hook.blocked_functions:
-                return False
-
-        return True
+        pass
 
     def get_abi_diagnostics(self) -> dict[str, Any]:
         """
@@ -325,10 +301,7 @@ class ABIAwareMutationPass(MutationPass):
         Returns:
             Dictionary with ABI diagnostics
         """
-        if self._abi_hook is None:
-            return {"enabled": False}
-
-        return self._abi_hook.get_diagnostics()
+        pass
 
     def get_abi_result(self) -> ABIResult | None:
         """
@@ -337,7 +310,7 @@ class ABIAwareMutationPass(MutationPass):
         Returns:
             ABIResult or None
         """
-        return self._abi_result
+        pass
 
 
 class _DelegatingABIAwarePass(ABIAwareMutationPass):

@@ -43,116 +43,7 @@ class Register:
 
     def aliases(self) -> set[Register]:
         """Get all aliases of this register."""
-        aliases: set[Register] = {self}
-        name = self.name.lower()
-
-        x86_alias_map = {
-            "rax": {"rax", "eax", "ax", "al"},
-            "rbx": {"rbx", "ebx", "bx", "bl"},
-            "rcx": {"rcx", "ecx", "cx", "cl"},
-            "rdx": {"rdx", "edx", "dx", "dl"},
-            "rsi": {"rsi", "esi", "si", "sil"},
-            "rdi": {"rdi", "edi", "di", "dil"},
-            "rbp": {"rbp", "ebp", "bp", "bpl"},
-            "rsp": {"rsp", "esp", "sp", "spl"},
-            "r8": {"r8", "r8d", "r8w", "r8b"},
-            "r9": {"r9", "r9d", "r9w", "r9b"},
-            "r10": {"r10", "r10d", "r10w", "r10b"},
-            "r11": {"r11", "r11d", "r11w", "r11b"},
-            "r12": {"r12", "r12d", "r12w", "r12b"},
-            "r13": {"r13", "r13d", "r13w", "r13b"},
-            "r14": {"r14", "r14d", "r14w", "r14b"},
-            "r15": {"r15", "r15d", "r15w", "r15b"},
-        }
-
-        arm64_alias_map = {
-            "x0": {"x0", "w0"},
-            "x1": {"x1", "w1"},
-            "x2": {"x2", "w2"},
-            "x3": {"x3", "w3"},
-            "x4": {"x4", "w4"},
-            "x5": {"x5", "w5"},
-            "x6": {"x6", "w6"},
-            "x7": {"x7", "w7"},
-            "x8": {"x8", "w8"},
-            "x9": {"x9", "w9"},
-            "x10": {"x10", "w10"},
-            "x11": {"x11", "w11"},
-            "x12": {"x12", "w12"},
-            "x13": {"x13", "w13"},
-            "x14": {"x14", "w14"},
-            "x15": {"x15", "w15"},
-            "x16": {"x16", "w16"},
-            "x17": {"x17", "w17"},
-            "x18": {"x18", "w18"},
-            "x19": {"x19", "w19"},
-            "x20": {"x20", "w20"},
-            "x21": {"x21", "w21"},
-            "x22": {"x22", "w22"},
-            "x23": {"x23", "w23"},
-            "x24": {"x24", "w24"},
-            "x25": {"x25", "w25"},
-            "x26": {"x26", "w26"},
-            "x27": {"x27", "w27"},
-            "x28": {"x28", "w28"},
-            "x29": {"x29", "w29"},
-            "x30": {"x30", "w30"},
-            "sp": {"sp", "wsp"},
-            "lr": {"lr", "x30"},
-        }
-
-        arm32_alias_map = {
-            "r0": {"r0"},
-            "r1": {"r1"},
-            "r2": {"r2"},
-            "r3": {"r3"},
-            "r4": {"r4"},
-            "r5": {"r5"},
-            "r6": {"r6"},
-            "r7": {"r7"},
-            "r8": {"r8"},
-            "r9": {"r9", "sb"},
-            "r10": {"r10", "sl"},
-            "r11": {"r11", "fp"},
-            "r12": {"r12", "ip"},
-            "r13": {"r13", "sp"},
-            "r14": {"r14", "lr"},
-            "r15": {"r15", "pc"},
-        }
-
-        for base, alias_set in x86_alias_map.items():
-            if name in alias_set:
-                result: set[Register] = set()
-                for a in alias_set:
-                    if a.startswith("r") and "d" not in a and "w" not in a and "b" not in a:
-                        size = 64
-                    elif "d" in a or a.startswith("e"):
-                        size = 32
-                    elif "w" in a or a.endswith("w"):
-                        size = 16
-                    elif "b" in a:
-                        size = 8
-                    else:
-                        size = 64
-                    result.add(Register(a, size))
-                return result
-
-        for base, alias_set in arm64_alias_map.items():
-            if name in alias_set:
-                arm64_result: set[Register] = set()
-                for a in alias_set:
-                    size = 64 if a.startswith("x") or a == "sp" or a == "lr" else 32
-                    arm64_result.add(Register(a, size))
-                return arm64_result
-
-        for base, alias_set in arm32_alias_map.items():
-            if name in alias_set:
-                arm32_result: set[Register] = set()
-                for a in alias_set:
-                    arm32_result.add(Register(a, 32))
-                return arm32_result
-
-        return aliases
+        pass
 
 
 @dataclass
@@ -241,9 +132,7 @@ class DefUseChain:
 
     def is_live_at(self, address: int) -> bool:
         """Check if this def-use chain is live at an address."""
-        if self.live_range is None:
-            return False
-        return self.live_range[0] <= address <= self.live_range[1]
+        pass
 
 
 class DataFlowResult:
@@ -261,23 +150,19 @@ class DataFlowResult:
 
     def get_live_registers(self, address: int) -> set[Register]:
         """Get live registers at an address."""
-        return self.live_in.get(address, set())
+        pass
 
     def is_register_live(self, address: int, register: Register) -> bool:
         """Check if a register is live at an address."""
-        live = self.live_in.get(address, set())
-        return any(r.name == register.name for r in live)
+        pass
 
     def get_reaching_definitions(self, address: int) -> set[Definition]:
         """Get definitions reaching an address."""
-        return self.reaching_in.get(address, set())
+        pass
 
     def get_def_use_chain(self, register: Register) -> DefUseChain | None:
         """Get def-use chain for a register."""
-        for chain in self.def_use_chains:
-            if chain.register.name == register.name:
-                return chain
-        return None
+        pass
 
 
 class DataFlowAnalyzer:
@@ -662,28 +547,7 @@ class DataFlowAnalyzer:
         Returns:
             Set of possible values
         """
-        values: set[Any] = set()
-        block_addr = None
-
-        for baddr, block in self.cfg.blocks.items():
-            for insn in block.instructions:
-                if insn.get("offset", 0) == address:
-                    block_addr = baddr
-                    break
-            if block_addr is not None:
-                break
-
-        if block_addr is None:
-            return values
-
-        reaching = self._result.reaching_in.get(block_addr, set())
-
-        for defn in reaching:
-            if defn.register and defn.register.name == register.name:
-                if defn.value is not None:
-                    values.add(defn.value)
-
-        return values
+        pass
 
     def is_safe_to_mutate(self, address: int, mutation_type: str) -> tuple[bool, str]:
         """
@@ -696,53 +560,8 @@ class DataFlowAnalyzer:
         Returns:
             Tuple of (is_safe, reason)
         """
-        block_addr = None
-        for baddr, block in self.cfg.blocks.items():
-            for insn in block.instructions:
-                if insn.get("offset", 0) == address:
-                    block_addr = baddr
-                    break
-            if block_addr is not None:
-                break
-
-        if block_addr is None:
-            return (False, "Address not found in CFG")
-
-        live_regs = self._result.live_in.get(block_addr, set())
-
-        if mutation_type in ("register_swap", "register_substitution"):
-            critical_regs = {"rsp", "rbp", "esp", "ebp"}
-            for reg in live_regs:
-                if reg.name.lower() in critical_regs:
-                    aliases = reg.aliases()
-                    for alias in aliases:
-                        if alias.name.lower() in critical_regs:
-                            return (False, f"Critical register {reg.name} is live")
-
-        reaching = self._result.reaching_in.get(block_addr, set())
-
-        if mutation_type == "instruction_expansion":
-            for defn in reaching:
-                if defn.register:
-                    if self._is_address_calculation(defn):
-                        return (False, "Address calculation nearby - expansion may break pointer references")
-
-        return (True, "Safe to mutate")
+        pass
 
     def _is_address_calculation(self, defn: Definition) -> bool:
         """Check if a definition is part of address calculation."""
-        if not defn.instruction:
-            return False
-
-        insn = defn.instruction.lower()
-
-        if "lea" in insn:
-            return True
-
-        if "add" in insn and any(r in insn for r in ["rbp", "rsp", "ebp", "esp"]):
-            return True
-
-        if "sub" in insn and any(r in insn for r in ["rbp", "rsp", "ebp", "esp"]):
-            return True
-
-        return False
+        pass

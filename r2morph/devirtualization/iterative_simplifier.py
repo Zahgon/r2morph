@@ -424,9 +424,6 @@ class IterativeSimplifier:
         # Hold a lock so only one worker drives radare2 at a time.
         r2_lock = threading.Lock()
 
-        def _run(pass_obj: SimplificationPass) -> tuple[bool, dict[str, Any]]:
-            with r2_lock:
-                return pass_obj.apply(self.binary, context.copy())
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
             futures = []
@@ -598,30 +595,8 @@ class IterativeSimplifier:
 
     def rollback_to_checkpoint(self, checkpoint_index: int = -1) -> bool:
         """Rollback to a previous checkpoint."""
-        try:
-            if not self.checkpoints:
-                logger.warning("No checkpoints available for rollback")
-                return False
-
-            checkpoint = self.checkpoints[checkpoint_index]
-
-            # Restore state from checkpoint data
-            self.metrics = checkpoint["metrics"]
-
-            logger.info(f"Rolled back to checkpoint at iteration {checkpoint['iteration']}")
-            return True
-
-        except Exception as e:
-            logger.error(f"Rollback failed: {e}")
-            return False
+        pass
 
     def get_progress_report(self) -> dict[str, Any]:
         """Get current progress report."""
-        return {
-            "iteration": self.metrics.iteration,
-            "complexity_reduction": self.metrics.complexity_reduction,
-            "execution_time": self.metrics.execution_time,
-            "simplified_expressions": self.metrics.simplified_expressions,
-            "devirtualized_handlers": self.metrics.devirtualized_handlers,
-            "checkpoints": len(self.checkpoints),
-        }
+        pass

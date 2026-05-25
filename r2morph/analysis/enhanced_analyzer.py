@@ -82,12 +82,7 @@ class EnhancedAnalysisOrchestrator:
         Returns:
             True if dependencies are available, False otherwise
         """
-        import importlib.util
-
-        return (
-            importlib.util.find_spec("r2morph.detection") is not None
-            and importlib.util.find_spec("r2morph.devirtualization") is not None
-        )
+        pass
 
     def _load_binary(self) -> Any:
         """Load and analyze the binary."""

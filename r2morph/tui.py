@@ -27,7 +27,7 @@ class _FallbackConsole:
 
     def print(self, *args: Any, **kwargs: Any) -> None:
         """Print to stdout."""
-        print(*args)
+        pass
 
 
 Console: Any
@@ -277,11 +277,7 @@ class TUIPassConfig:
         self.pass_name = pass_name
         self.config = config or self.DEFAULT_CONFIGS.get(pass_name, {}).copy()
 
-    def get_option(self, key: str, default: Any = None) -> Any:
-        return self.config.get(key, default)
 
-    def set_option(self, key: str, value: Any) -> None:
-        self.config[key] = value
 
 
 class TUIConfigScreen:
@@ -308,13 +304,7 @@ class TUIConfigScreen:
         self._current_pass: str | None = None
         self._configs: dict[str, TUIPassConfig] = {}
 
-    def get_config(self, pass_name: str) -> TUIPassConfig:
-        if pass_name not in self._configs:
-            self._configs[pass_name] = TUIPassConfig(pass_name)
-        return self._configs[pass_name]
 
-    def set_config(self, pass_name: str, config: dict[str, Any]) -> None:
-        self._configs[pass_name] = TUIPassConfig(pass_name, config)
 
     def render(self, pass_name: str, config: dict[str, Any] | None = None) -> None:
         if RICH_AVAILABLE:
@@ -361,43 +351,7 @@ class TUIConfigScreen:
 
         print("\n[Enter option=value to change, D for defaults, C to continue]")
 
-    def handle_input(self, key_input: str, pass_name: str, current_config: dict[str, Any]) -> dict[str, Any]:
-        config = current_config.copy()
 
-        if key_input.lower() == "d":
-            return TUIPassConfig.DEFAULT_CONFIGS.get(pass_name, {}).copy()
-
-        if "=" in key_input:
-            parts = key_input.split("=", 1)
-            if len(parts) == 2:
-                option = parts[0].strip()
-                value = parts[1].strip()
-
-                config_types = self.CONFIG_TYPES.get(pass_name, {})
-                expected_type = config_types.get(option, str)
-
-                if expected_type is bool:
-                    config[option] = value.lower() in ("true", "1", "yes", "on")
-                elif expected_type is int:
-                    try:
-                        config[option] = int(value)
-                    except ValueError:
-                        logger.warning(
-                            "Cannot parse %r as int for option %r; keeping previous value",
-                            value,
-                            option,
-                        )
-                else:
-                    config[option] = value
-
-        return config
-
-    def configure_all_passes(self, passes: list[TUIPass]) -> dict[str, dict[str, Any]]:
-        configs: dict[str, dict[str, Any]] = {}
-        for p in passes:
-            if p.selected and p.configurable:
-                configs[p.name] = self.get_config(p.name).config.copy()
-        return configs
 
 
 class TUIPreviewScreen:
@@ -495,14 +449,7 @@ class TUIProgressIndicator:
         if self._progress and self._task_id is not None:
             self._progress.update(self._task_id, advance=advance, description=message)
 
-    def complete(self, message: str = "Complete") -> None:
-        if self._progress and self._task_id is not None:
-            self._progress.update(self._task_id, description=message)
-            self._progress.stop()
 
-    def stop(self) -> None:
-        if self._progress:
-            self._progress.stop()
 
 
 class MutationTUI:
@@ -609,69 +556,10 @@ class MutationTUI:
             response = input("Execute mutations? [Y/n]: ").strip().lower()
             return response in ("", "y", "yes")
 
-    def show_preview(self, mutations: list[TUIMutation]) -> None:
-        page = 0
-        while True:
-            self.preview_screen.render(mutations, page=page)
-            key = self._get_input()
-            max_page = (len(mutations) + 9) // 10
-            if key.lower() == "n" and page < max_page - 1:
-                page += 1
-            elif key.lower() == "p" and page > 0:
-                page -= 1
-            elif key.lower() == "q":
-                break
 
-    def select_functions(self, functions: list[TUIFunction]) -> list[TUIFunction]:
-        selected = list(functions)
-        while True:
-            self.function_screen.render(selected)
-            key = self._get_input()
-            if key.lower() == "a":
-                for f in selected:
-                    f.selected = True
-            elif key.lower() == "n":
-                for f in selected:
-                    f.selected = False
-            elif key.lower() == "c":
-                return [f for f in selected if f.selected]
-            elif key.isdigit():
-                idx = int(key)
-                if 0 <= idx < len(selected):
-                    selected[idx].selected = not selected[idx].selected
 
-    def select_passes(self, passes: list[TUIPass]) -> list[TUIPass]:
-        selected = list(passes)
-        while True:
-            self.pass_screen.render(selected)
-            key = self._get_input()
-            if key.lower() == "a":
-                for p in selected:
-                    p.selected = True
-            elif key.lower() == "n":
-                for p in selected:
-                    p.selected = False
-            elif key.lower() == "c":
-                return [p for p in selected if p.selected]
-            elif key.isdigit():
-                idx = int(key)
-                if 0 <= idx < len(selected):
-                    selected[idx].selected = not selected[idx].selected
 
-    def confirm_mutations(self, mutation_count: int) -> bool:
-        if RICH_AVAILABLE:
-            self.console.print(f"\n[bold yellow]{mutation_count}[/bold yellow] mutations will be applied.")
-            return Confirm.ask("Proceed?", console=self.console, default=True)
-        else:
-            print(f"\n{mutation_count} mutations will be applied.")
-            response = input("Proceed? [Y/n]: ").strip().lower()
-            return response in ("", "y", "yes")
 
-    def show_progress(self, total: int, description: str = "Processing") -> TUIProgressIndicator:
-        indicator = TUIProgressIndicator(self.console)
-        if RICH_AVAILABLE:
-            indicator.start(total, description)
-        return indicator
 
 
 def create_default_passes() -> list[TUIPass]:
@@ -707,47 +595,6 @@ def create_default_passes() -> list[TUIPass]:
     ]
 
 
-def run_interactive_mode(
-    functions: list[Any],
-    passes: list[Any] | None = None,
-    on_execute: Callable | None = None,
-) -> dict[str, Any] | None:
-    tui = MutationTUI()
-    tui_functions = [
-        TUIFunction(
-            address=f.get("address", 0),
-            name=f.get("name", "unknown"),
-            size=f.get("size", 0),
-        )
-        for f in functions
-    ]
-    tui_passes = passes or [
-        TUIPass(
-            name=getattr(p, "name", ""),
-            description=getattr(p, "description", ""),
-            is_stable=getattr(p, "is_stable", False),
-        )
-        for p in create_default_passes()
-    ]
-    if not on_execute:
-
-        def default_execute(funcs: list[TUIFunction], passes: list[TUIPass]) -> list[TUIMutation]:
-            return []
-
-        on_execute = default_execute
-
-    result = tui.run(tui_functions, tui_passes, on_execute)
-
-    if result is None:
-        return None
-
-    return {
-        "functions": [
-            {"address": f.address, "name": f.name, "selected": f.selected} for f in result.functions if f.selected
-        ],
-        "passes": [{"name": p.name, "selected": p.selected} for p in result.passes if p.selected],
-        "confirmed": result.confirmed,
-    }
 
 
 class FunctionFilter:
@@ -765,40 +612,23 @@ class FunctionFilter:
 
     def set_pattern(self, pattern: str) -> None:
         """Set filter pattern for function names."""
-        self._pattern = pattern.lower()
+        pass
 
     def set_size_range(self, min_size: int = 0, max_size: int = 0) -> None:
         """Set size range filter. 0 means no limit."""
-        self._min_size = min_size
-        self._max_size = max_size
+        pass
 
     def set_address_range(self, start: int, end: int) -> None:
         """Set address range filter."""
-        self._address_range = (start, end)
+        pass
 
     def matches(self, func: TUIFunction) -> bool:
         """Check if function matches current filters."""
-        if self._pattern:
-            if self._pattern not in func.name.lower():
-                if not re.search(self._pattern, func.name, re.IGNORECASE):
-                    return False
-
-        if self._min_size > 0 and func.size < self._min_size:
-            return False
-
-        if self._max_size > 0 and func.size > self._max_size:
-            return False
-
-        if self._address_range:
-            start, end = self._address_range
-            if not (start <= func.address <= end):
-                return False
-
-        return True
+        pass
 
     def filter_functions(self, functions: list[TUIFunction]) -> list[TUIFunction]:
         """Filter list of functions."""
-        return [f for f in functions if self.matches(f)]
+        pass
 
     def clear(self) -> None:
         """Clear all filters."""
@@ -822,8 +652,7 @@ class DiffView:
 
     def set_mutations(self, mutations: list[TUIMutation]) -> None:
         """Set mutations to display."""
-        self._mutations = mutations
-        self._current_idx = 0
+        pass
 
     def next(self) -> bool:
         """Go to next mutation. Returns True if successful."""
@@ -834,16 +663,11 @@ class DiffView:
 
     def previous(self) -> bool:
         """Go to previous mutation. Returns True if successful."""
-        if self._current_idx > 0:
-            self._current_idx -= 1
-            return True
-        return False
+        pass
 
     def current(self) -> TUIMutation | None:
         """Get current mutation."""
-        if 0 <= self._current_idx < len(self._mutations):
-            return self._mutations[self._current_idx]
-        return None
+        pass
 
     def render(self) -> None:
         """Render the diff view."""
@@ -928,168 +752,23 @@ class DiffView:
 
     def render_summary(self) -> None:
         """Render summary of all mutations."""
-        if not self._mutations:
-            self.console.print("[yellow]No mutations to summarize[/yellow]")
-            return
-
-        if RICH_AVAILABLE:
-            table = Table(title="Mutation Summary")
-            table.add_column("#", style="dim")
-            table.add_column("Address", style="cyan")
-            table.add_column("Function", style="green")
-            table.add_column("Pass", style="yellow")
-            table.add_column("Size", style="magenta")
-
-            for i, mut in enumerate(self._mutations):
-                table.add_row(
-                    str(i + 1),
-                    f"0x{mut.address:x}",
-                    mut.function or "unknown",
-                    mut.pass_name,
-                    str(len(mut.mutated_bytes)) if mut.mutated_bytes else "0",
-                )
-
-            self.console.print(table)
-        else:
-            print("\nMutation Summary:")
-            for i, mut in enumerate(self._mutations):
-                print(f"  {i + 1}. 0x{mut.address:x} - {mut.function or 'unknown'} - {mut.pass_name}")
+        pass
 
     def render_disasm_diff(self) -> None:
         """Render disassembly diff view with side-by-side comparison."""
-        if not self._mutations:
-            self.console.print("[yellow]No mutations to display[/yellow]")
-            return
-
-        mutation = self._mutations[self._current_idx]
-
-        if RICH_AVAILABLE:
-            self._render_disasm_rich(mutation)
-        else:
-            self._render_disasm_basic(mutation)
+        pass
 
     def _render_disasm_rich(self, mutation: TUIMutation) -> None:
         """Render disassembly diff with rich formatting."""
-        self.console.print(
-            f"\n[bold]Disassembly Diff - Mutation {self._current_idx + 1} of {len(self._mutations)}[/bold]"
-        )
-        self.console.print(f"[cyan]Function:[/cyan] {mutation.function or 'unknown'}")
-        self.console.print(f"[cyan]Address:[/cyan] 0x{mutation.address:x}")
-        self.console.print(f"[cyan]Pass:[/cyan] {mutation.pass_name}")
-
-        if mutation.description:
-            self.console.print(f"[dim]{mutation.description}[/dim]")
-
-        orig_lines = mutation.original_disasm or []
-        mut_lines = mutation.mutated_disasm or []
-
-        if not orig_lines and not mut_lines:
-            self.console.print("[yellow]No disassembly available[/yellow]")
-            self._render_rich()
-            return
-
-        max_lines = max(len(orig_lines), len(mut_lines), 1)
-
-        table = Table(title="Disassembly Comparison", show_header=True, expand=True)
-        table.add_column("#", style="dim", width=3)
-        table.add_column("Original", style="red", ratio=1)
-        table.add_column("Mutated", style="green", ratio=1)
-        table.add_column("Status", style="yellow", width=8)
-
-        for i in range(max_lines):
-            orig_line = orig_lines[i] if i < len(orig_lines) else ""
-            mut_line = mut_lines[i] if i < len(mut_lines) else ""
-
-            if orig_line == mut_line:
-                status = "same"
-            elif not orig_line:
-                status = "added"
-            elif not mut_line:
-                status = "removed"
-            else:
-                status = "changed"
-
-            table.add_row(
-                str(i + 1),
-                orig_line[:50] if orig_line else "",
-                mut_line[:50] if mut_line else "",
-                status,
-            )
-
-        self.console.print(table)
-
-        changed_count = sum(
-            1
-            for i in range(max_lines)
-            if (i < len(orig_lines) and i < len(mut_lines) and orig_lines[i] != mut_lines[i])
-            or (i >= len(orig_lines) and i < len(mut_lines))
-            or (i < len(orig_lines) and i >= len(mut_lines))
-        )
-        self.console.print(f"\n[bold]Stats:[/bold] {changed_count} lines changed")
-
-        self._render_byte_diff_summary(mutation)
+        pass
 
     def _render_byte_diff_summary(self, mutation: TUIMutation) -> None:
         """Render a summary of byte-level differences."""
-        orig_bytes = mutation.original_bytes or b""
-        mut_bytes = mutation.mutated_bytes or b""
-
-        if orig_bytes == mut_bytes:
-            return
-
-        diff_count = 0
-        for i in range(max(len(orig_bytes), len(mut_bytes))):
-            orig_byte = orig_bytes[i] if i < len(orig_bytes) else None
-            mut_byte = mut_bytes[i] if i < len(mut_bytes) else None
-
-            if orig_byte != mut_byte:
-                diff_count += 1
-
-        if diff_count > 0:
-            self.console.print(f"[dim]Byte changes: {diff_count} / {max(len(orig_bytes), len(mut_bytes))} bytes[/dim]")
+        pass
 
     def _render_disasm_basic(self, mutation: TUIMutation) -> None:
         """Render disassembly diff with basic formatting."""
-        print(f"\nDisassembly Diff - Mutation {self._current_idx + 1} of {len(self._mutations)}")
-        print(f"Function: {mutation.function or 'unknown'}")
-        print(f"Address: 0x{mutation.address:x}")
-        print(f"Pass: {mutation.pass_name}")
-
-        if mutation.description:
-            print(f"  {mutation.description}")
-
-        orig_lines = mutation.original_disasm or []
-        mut_lines = mutation.mutated_disasm or []
-
-        if not orig_lines and not mut_lines:
-            print("No disassembly available")
-            self._render_basic()
-            return
-
-        max_lines = max(len(orig_lines), len(mut_lines), 1)
-
-        print(f"\n{'#':<3} {'Original':<40} {'Mutated':<40} {'Status'}")
-        print("-" * 100)
-
-        for i in range(max_lines):
-            orig_line = orig_lines[i] if i < len(orig_lines) else ""
-            mut_line = mut_lines[i] if i < len(mut_lines) else ""
-
-            if orig_line == mut_line:
-                status = "same"
-            elif not orig_line:
-                status = "added"
-            elif not mut_line:
-                status = "removed"
-            else:
-                status = "changed"
-
-            orig_display = orig_line[:38] if orig_line else ""
-            mut_display = mut_line[:38] if mut_line else ""
-
-            print(f"{i + 1:<3} {orig_display:<40} {mut_display:<40} {status}")
-
-        print("\nn: next | p: previous | d: bytes | q: quit")
+        pass
 
 
 class FunctionSearchScreen:
@@ -1110,22 +789,11 @@ class FunctionSearchScreen:
 
     def handle_input(self, key: str) -> None:
         """Handle keyboard input for search mode."""
-        if self._search_mode:
-            if key == "escape":
-                self._search_mode = False
-                self._search_query = ""
-            elif key == "enter":
-                self._filter.set_pattern(self._search_query)
-                self._search_mode = False
-            elif key == "backspace":
-                self._search_query = self._search_query[:-1]
-            else:
-                self._search_query += key
+        pass
 
     def enter_search_mode(self) -> None:
         """Enter search mode."""
-        self._search_mode = True
-        self._search_query = ""
+        pass
 
     def render(self, functions: list[TUIFunction], filtered: list[TUIFunction]) -> None:
         """Render function list with search UI."""

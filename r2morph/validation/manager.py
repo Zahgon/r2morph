@@ -187,4 +187,4 @@ class ValidationManager:
         Returns:
             Dictionary with ABI validation results
         """
-        return self._abi_validator.validate(binary, function_address, mutation_regions)
+        pass

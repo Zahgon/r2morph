@@ -415,9 +415,4 @@ class BinaryValidator:
         Returns:
             ValidationResult
         """
-        self.test_cases = []
-
-        for i, input_str in enumerate(test_inputs):
-            self.add_test_case(stdin=input_str, description=f"Input test {i + 1}")
-
-        return self.validate(original_path, mutated_path)
+        pass

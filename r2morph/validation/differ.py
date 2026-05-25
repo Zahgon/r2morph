@@ -169,14 +169,11 @@ class DiffReport:
 
     def write_report(self, path: Path) -> None:
         """Write report to file."""
-        path.write_text(self.to_json())
+        pass
 
     def get_changes_by_severity(self) -> dict[ChangeSeverity, list[BinaryDiff]]:
         """Group changes by severity."""
-        result: dict[ChangeSeverity, list[BinaryDiff]] = {s: [] for s in ChangeSeverity}
-        for diff in self.diffs:
-            result[diff.severity].append(diff)
-        return result
+        pass
 
     def _compute_summary(self) -> None:
         """Compute summary statistics."""
@@ -465,100 +462,11 @@ class BinaryDiffer:
         Returns:
             FunctionDiff or None
         """
-        try:
-            orig_disasm_first = self.original.get_function_disasm(address)
-            mut_disasm_first = self.mutated.get_function_disasm(address)
-        except Exception:
-            return None
-
-        if not orig_disasm_first or not mut_disasm_first:
-            return None
-
-        orig_size = orig_disasm_first[-1].get("offset", 0) + orig_disasm_first[-1].get("size", 0) - address
-        mut_size = mut_disasm_first[-1].get("offset", 0) + mut_disasm_first[-1].get("size", 0) - address
-
-        try:
-            orig_data = self.original.read_bytes(address, max(orig_size, 1))
-            mut_data = self.mutated.read_bytes(address, max(mut_size, 1))
-        except Exception:
-            return None
-
-        if orig_data is None or mut_data is None:
-            return None
-
-        try:
-            orig_disasm = self.original.get_function_disasm(address)
-            mut_disasm = self.mutated.get_function_disasm(address)
-        except Exception:
-            orig_disasm = []
-            mut_disasm = []
-
-        byte_diffs = self._compute_byte_diffs(orig_data, mut_data, address)
-
-        disasm_diff = []
-        max_insn = max(len(orig_disasm), len(mut_disasm))
-        for i in range(max_insn):
-            orig_insn = orig_disasm[i] if i < len(orig_disasm) else None
-            mut_insn = mut_disasm[i] if i < len(mut_disasm) else None
-
-            orig_str = orig_insn.get("disasm", "") if orig_insn else ""
-            mut_str = mut_insn.get("disasm", "") if mut_insn else ""
-
-            if orig_str != mut_str:
-                disasm_diff.append((address + i, orig_str, mut_str))
-
-        func_name = f"func_{address:x}"
-        try:
-            funcs = self.mutated.get_functions()
-            for f in funcs:
-                if f.get("offset", f.get("addr", 0)) == address:
-                    func_name = f.get("name", func_name)
-                    break
-        except (AttributeError, TypeError, RuntimeError) as exc:
-            logger.debug("Could not resolve function name for 0x%x; using default label: %s", address, exc)
-
-        return FunctionDiff(
-            name=func_name,
-            address=address,
-            original_size=len(orig_data),
-            mutated_size=len(mut_data),
-            original_bytes=orig_data,
-            mutated_bytes=mut_data,
-            byte_diffs=byte_diffs,
-            disassembly_diff=disasm_diff,
-        )
+        pass
 
     def _compute_byte_diffs(self, orig: bytes, mut: bytes, base_addr: int) -> list[ByteDiff]:
         """Compute byte-level differences."""
-        diffs: list[ByteDiff] = []
-        min_len = min(len(orig), len(mut))
-
-        for i in range(min_len):
-            if orig[i] != mut[i]:
-                context_start = max(0, i - self.context_bytes)
-                context_end = min(min_len, i + self.context_bytes + 1)
-
-                diffs.append(
-                    ByteDiff(
-                        offset=base_addr + i,
-                        original=bytes([orig[i]]),
-                        mutated=bytes([mut[i]]),
-                        context_before=orig[context_start:i],
-                        context_after=orig[i + 1 : context_end],
-                    )
-                )
-
-        if len(orig) != len(mut):
-            start = min_len
-            diffs.append(
-                ByteDiff(
-                    offset=base_addr + start,
-                    original=orig[start:] if start < len(orig) else b"",
-                    mutated=mut[start:] if start < len(mut) else b"",
-                )
-            )
-
-        return diffs
+        pass
 
 
 def compare_binaries(original: Binary, mutated: Binary) -> DiffReport:

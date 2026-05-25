@@ -110,7 +110,7 @@ def classify_target_support(
 
 def is_stable_mutation(name: str) -> bool:
     """Return whether a mutation name is part of the stable core."""
-    return name in PRODUCT_SUPPORT.stable_mutations
+    pass
 
 
 def is_experimental_mutation(name: str) -> bool:

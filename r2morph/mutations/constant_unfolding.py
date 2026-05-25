@@ -85,28 +85,7 @@ class ConstantUnfoldingPass(MutationPass):
 
     def _get_reg_mapping(self, bits: int) -> dict[str, list[str]]:
         """Get register mapping for architecture."""
-        if bits == 64:
-            return {
-                "rax": ["rax", "eax", "r0"],
-                "rbx": ["rbx", "ebx", "r3"],
-                "rcx": ["rcx", "ecx", "r1"],
-                "rdx": ["rdx", "edx", "r2"],
-                "rsi": ["rsi", "esi"],
-                "rdi": ["rdi", "edi"],
-                "r8": ["r8", "r8d"],
-                "r9": ["r9", "r9d"],
-                "r10": ["r10", "r10d"],
-                "r11": ["r11", "r11d"],
-            }
-        else:
-            return {
-                "eax": ["eax"],
-                "ebx": ["ebx"],
-                "ecx": ["ecx"],
-                "edx": ["edx"],
-                "esi": ["esi"],
-                "edi": ["edi"],
-            }
+        pass
 
     def _unfold_zero(self, reg: str, bits: int, binary: Any, base_addr: int) -> list[str] | None:
         """

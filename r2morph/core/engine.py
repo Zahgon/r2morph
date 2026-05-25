@@ -142,7 +142,7 @@ class MorphEngine:
         Returns:
             Registered mutation passes in the pipeline
         """
-        return self.pipeline.passes
+        pass
 
     def _should_use_low_memory(self, path: Path) -> bool:
         """Determine if low-memory mode should be enabled based on file size."""
@@ -151,11 +151,7 @@ class MorphEngine:
 
     def _create_working_copy(self, original_path: Path) -> Path:
         """Create a temporary working copy of the binary."""
-        temp_dir = Path(tempfile.gettempdir()) / "r2morph"
-        temp_dir.mkdir(exist_ok=True)
-        working_copy = temp_dir / f"{original_path.name}.working"
-        shutil.copy2(original_path, working_copy)
-        return working_copy
+        pass
 
     def _get_binary_size_mb(self, path: Path) -> float:
         """Get binary file size in megabytes."""
@@ -356,9 +352,7 @@ class MorphEngine:
         Returns:
             Self for method chaining
         """
-        self.pipeline.remove_pass_by_name(mutation_name)
-        logger.debug(f"Removed mutation: {mutation_name}")
-        return self
+        pass
 
     def run(
         self,
@@ -484,7 +478,7 @@ class MorphEngine:
 
     def get_stats(self) -> dict[str, Any]:
         """Get transformation statistics."""
-        return self._stats
+        pass
 
     def build_report(self, result: dict[str, Any] | None = None) -> dict[str, Any]:
         """Build a stable machine-readable engine report."""

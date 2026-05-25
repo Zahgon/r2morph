@@ -31,14 +31,7 @@ class DispatcherGenerator:
         Returns:
             List of assembly instructions
         """
-        arch_family, bits = binary.get_arch_family()
-
-        if arch_family == "x86":
-            return self.generate_x86(blocks, bits)
-        elif arch_family == "arm":
-            return self.generate_arm(blocks, bits)
-
-        return []
+        pass
 
     @staticmethod
     def generate_x86(blocks: list[Any], bits: int) -> list[str]:
@@ -52,39 +45,7 @@ class DispatcherGenerator:
         Returns:
             Assembly instructions
         """
-        reg = "rax" if bits == 64 else "eax"
-
-        code = [
-            "; Flattened control flow dispatcher",
-            f"mov {reg}, 0  ; Initial state",
-            ".dispatcher_loop:",
-        ]
-
-        for i, block in enumerate(blocks):
-            code.extend(
-                [
-                    f"cmp {reg}, {i}",
-                    f"je .block_{i}",
-                ]
-            )
-
-        code.append("jmp .dispatcher_end")
-
-        for i, block in enumerate(blocks):
-            code.append(f".block_{i}:")
-            code.append(f"; Original block at 0x{block.address:x}")
-            code.append("; ... block code here ...")
-
-            if i < len(blocks) - 1:
-                code.append(f"mov {reg}, {i + 1}")
-            else:
-                code.append(f"mov {reg}, -1")
-
-            code.append("jmp .dispatcher_loop")
-
-        code.append(".dispatcher_end:")
-
-        return code
+        pass
 
     @staticmethod
     def generate_arm(blocks: list[Any], bits: int) -> list[str]:
@@ -98,36 +59,4 @@ class DispatcherGenerator:
         Returns:
             Assembly instructions
         """
-        reg = "x0" if bits == 64 else "r0"
-
-        code = [
-            "; Flattened control flow dispatcher",
-            f"mov {reg}, #0  ; Initial state",
-            ".dispatcher_loop:",
-        ]
-
-        for i, block in enumerate(blocks):
-            code.extend(
-                [
-                    f"cmp {reg}, #{i}",
-                    f"b.eq .block_{i}",
-                ]
-            )
-
-        code.append("b .dispatcher_end")
-
-        for i, block in enumerate(blocks):
-            code.append(f".block_{i}:")
-            code.append(f"; Original block at 0x{block.address:x}")
-            code.append("; ... block code here ...")
-
-            if i < len(blocks) - 1:
-                code.append(f"mov {reg}, #{i + 1}")
-            else:
-                code.append(f"mov {reg}, #-1")
-
-            code.append("b .dispatcher_loop")
-
-        code.append(".dispatcher_end:")
-
-        return code
+        pass

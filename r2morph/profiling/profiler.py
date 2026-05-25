@@ -40,11 +40,7 @@ class BinaryProfiler:
         Returns:
             Profile data dict
         """
-        logger.info(f"Profiling {self.binary_path.name}")
-
-        self.profile_data = self._profile_with_sampling(duration)
-
-        return self.profile_data
+        pass
 
     def _profile_with_sampling(self, duration: int) -> dict:
         """
@@ -56,53 +52,19 @@ class BinaryProfiler:
         Returns:
             Profile data
         """
-        import platform
-
-        system = platform.system()
-
-        if system == "Linux":
-            return self._profile_linux_perf(duration)
-        elif system == "Darwin":
-            return self._profile_macos_dtrace(duration)
-        else:
-            logger.warning("Profiling not available on this platform")
-            return {}
+        pass
 
     def _profile_linux_perf(self, duration: int) -> dict:
         """Profile on Linux using perf."""
-        try:
-            cmd = ["perf", "record", "-F", "99", "-g", "--", str(self.binary_path)]
-
-            subprocess.run(cmd, timeout=duration)
-
-            report = subprocess.run(["perf", "report", "--stdio"], capture_output=True, text=True)
-
-            hot_functions = self._parse_perf_output(report.stdout)
-
-            return {"hot_functions": hot_functions}
-
-        except Exception as e:
-            logger.error(f"perf profiling failed: {e}")
-            return {}
+        pass
 
     def _profile_macos_dtrace(self, duration: int) -> dict:
         """Profile on macOS using dtrace/Instruments."""
-        logger.info("Would use dtrace/Instruments for profiling")
-        return {}
+        pass
 
     def _parse_perf_output(self, output: str) -> list[str]:
         """Parse perf report output."""
-        hot_functions = []
-
-        for line in output.split("\n"):
-            if "%" in line and "sym." in line:
-                parts = line.split()
-                for part in parts:
-                    if part.startswith("sym."):
-                        hot_functions.append(part)
-                        break
-
-        return hot_functions[:20]
+        pass
 
     def get_hot_functions(self) -> set[str]:
         """
@@ -111,7 +73,7 @@ class BinaryProfiler:
         Returns:
             Set of function names
         """
-        return set(self.profile_data.get("hot_functions", []))
+        pass
 
     def get_cold_functions(self, all_functions: list[str]) -> set[str]:
         """
@@ -123,8 +85,7 @@ class BinaryProfiler:
         Returns:
             Set of cold function names
         """
-        hot = self.get_hot_functions()
-        return set(all_functions) - hot
+        pass
 
     def should_mutate_aggressively(self, func_name: str) -> bool:
         """
@@ -138,6 +99,4 @@ class BinaryProfiler:
         Returns:
             True if aggressive mutation is recommended
         """
-        hot_functions = self.get_hot_functions()
-
-        return func_name not in hot_functions
+        pass

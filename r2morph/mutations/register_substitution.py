@@ -355,12 +355,7 @@ class RegisterSubstitutionPass(MutationPass):
         Returns:
             Number of uses
         """
-        count = 0
-        for insn in instructions:
-            disasm = insn.get("disasm", "").lower()
-            if register in disasm:
-                count += 1
-        return count
+        pass
 
     def _is_safe_size_extension_substitution(self, disasm: str, orig_reg: str, subst_reg: str) -> bool:
         """

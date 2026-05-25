@@ -95,12 +95,7 @@ class Pipeline:
         Returns:
             True if pass was removed, False if not found
         """
-        for i, p in enumerate(self.passes):
-            if p.name == pass_name:
-                self.passes.pop(i)
-                logger.debug(f"Removed pass: {pass_name}")
-                return True
-        return False
+        pass
 
     def remove_pass_by_name(self, name: str) -> None:
         """
@@ -112,7 +107,7 @@ class Pipeline:
         Args:
             name: Name of the mutation pass(es) to remove
         """
-        self.passes = [p for p in self.passes if p.name != name]
+        pass
 
     def clear(self) -> None:
         """Clear all passes from the pipeline."""
@@ -503,7 +498,7 @@ class Pipeline:
 
     def get_pass_names(self) -> list[str]:
         """Get list of pass names in the pipeline."""
-        return [p.name for p in self.passes]
+        pass
 
     def __len__(self) -> int:
         """Get number of passes in pipeline."""

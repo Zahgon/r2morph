@@ -97,20 +97,8 @@ def _mutation_config(section: Any, seed: int | None, offset: int) -> dict[str, A
     return cfg
 
 
-def _warn_experimental_mutations(mutations: list[str]) -> None:
-    if not mutations:
-        return
-    console.print(f"[yellow]Experimental mutations selected:[/yellow] {', '.join(mutations)}")
-    console.print("[yellow]These passes are outside the stable core and validation coverage is best-effort.[/yellow]")
 
 
-def _warn_experimental_validation_mode(validation_mode: str) -> None:
-    if validation_mode != "symbolic":
-        return
-    console.print("[yellow]Experimental validation mode selected:[/yellow] symbolic")
-    console.print(
-        "[yellow]This mode performs bounded symbolic prechecks and structural fallback; it does not prove general semantic equivalence.[/yellow]"
-    )
 
 
 def _build_runtime_validator(
@@ -143,9 +131,7 @@ def _load_binary_analyzer() -> type:
 
 def _load_diff_analyzer() -> type:
     """Lazy import for diff-only flows outside the stable mutate/report hot path."""
-    from r2morph.analysis.diff_analyzer import DiffAnalyzer
-
-    return DiffAnalyzer
+    pass
 
 
 def _load_mutation_pass_types() -> dict[str, type]:
@@ -201,29 +187,7 @@ def _resolve_pass_severity_requirements(
     alias_map: dict[str, str] | None = None,
 ) -> list[tuple[str, str, int]]:
     """Parse repeated PassName=severity requirements for mutate gating."""
-    resolved: list[tuple[str, str, int]] = []
-    aliases = {key.strip(): value for key, value in (alias_map or {}).items()}
-    valid_pass_names = set(aliases.values())
-    for item in requirements or []:
-        if "=" not in item:
-            console.print(
-                f"[bold red]Error:[/bold red] Invalid --require-pass-severity: {item}. Expected PassName=severity"
-            )
-            raise typer.Exit(2)
-        pass_name, severity = item.split("=", 1)
-        pass_name = pass_name.strip()
-        severity = severity.strip()
-        pass_name = aliases.get(pass_name, pass_name)
-        if not pass_name or severity not in SEVERITY_ORDER or (valid_pass_names and pass_name not in valid_pass_names):
-            console.print(
-                "[bold red]Error:[/bold red] "
-                f"Invalid --require-pass-severity: {item}. "
-                "Expected PassName=severity with severity in "
-                "mismatch, without-coverage, bounded-only, clean, not-requested"
-            )
-            raise typer.Exit(2)
-        resolved.append((pass_name, severity, SEVERITY_ORDER[severity]))
-    return resolved
+    pass
 
 
 def _add_mutations(
@@ -316,18 +280,7 @@ def _limited_symbolic_passes(
     seed: int | None,
 ) -> list[dict[str, str]]:
     """Return passes that declare symbolic support as limited."""
-    limited = []
-    for mutation_name, mutation_pass in _selected_mutation_passes(mutations, config, seed=seed):
-        symbolic_support = mutation_pass.get_support().validator_capabilities.get("symbolic", {})
-        if symbolic_support.get("recommended") is False:
-            limited.append(
-                {
-                    "mutation": mutation_name,
-                    "pass_name": mutation_pass.name,
-                    "confidence": str(symbolic_support.get("confidence", "unknown")),
-                }
-            )
-    return limited
+    pass
 
 
 def _warn_or_block_limited_symbolic(
@@ -338,29 +291,7 @@ def _warn_or_block_limited_symbolic(
     allow_limited_symbolic: bool,
 ) -> None:
     """Block symbolic mode for passes that declare limited symbolic support unless explicitly allowed."""
-    limited = []
-    for mutation_name, mutation_pass in _selected_mutation_passes(mutations, config, seed=seed):
-        symbolic_support = mutation_pass.get_support().validator_capabilities.get("symbolic", {})
-        if symbolic_support.get("recommended") is False:
-            limited.append(
-                {
-                    "mutation": mutation_name,
-                    "pass_name": mutation_pass.name,
-                    "confidence": symbolic_support.get("confidence", "unknown"),
-                }
-            )
-    if not limited:
-        return
-
-    names = ", ".join(item["pass_name"] for item in limited)
-    if not allow_limited_symbolic:
-        console.print(f"[bold red]Error:[/bold red] symbolic validation is marked limited for: {names}")
-        console.print("[yellow]Use structural/runtime, or pass --allow-limited-symbolic to continue anyway.[/yellow]")
-        raise typer.Exit(2)
-
-    console.print(f"[yellow]Limited symbolic coverage explicitly allowed for:[/yellow] {names}")
-    for item in limited:
-        console.print(f"[yellow]- {item['pass_name']}: symbolic confidence={item['confidence']}[/yellow]")
+    pass
 
 
 def _resolve_validation_mode(
@@ -373,57 +304,7 @@ def _resolve_validation_mode(
     limited_symbolic_policy: str,
 ) -> tuple[str, dict[str, object] | None]:
     """Resolve requested vs effective validation mode for limited symbolic passes."""
-    if requested_mode != "symbolic":
-        return requested_mode, None
-
-    limited = _limited_symbolic_passes(mutations, config, seed=seed)
-    if not limited:
-        return requested_mode, None
-
-    if allow_limited_symbolic:
-        names = ", ".join(item["pass_name"] for item in limited)
-        console.print(f"[yellow]Limited symbolic coverage explicitly allowed for:[/yellow] {names}")
-        for item in limited:
-            console.print(f"[yellow]- {item['pass_name']}: symbolic confidence={item['confidence']}[/yellow]")
-        return requested_mode, {
-            "requested_mode": requested_mode,
-            "effective_mode": requested_mode,
-            "policy": "allow",
-            "reason": "explicit-override",
-            "limited_passes": limited,
-        }
-
-    if limited_symbolic_policy == "degrade-runtime":
-        names = ", ".join(item["pass_name"] for item in limited)
-        console.print(f"[yellow]Limited symbolic support detected for:[/yellow] {names}")
-        console.print("[yellow]Degrading validation mode from symbolic to runtime.[/yellow]")
-        return "runtime", {
-            "requested_mode": requested_mode,
-            "effective_mode": "runtime",
-            "policy": limited_symbolic_policy,
-            "reason": "limited-symbolic-support",
-            "limited_passes": limited,
-        }
-
-    if limited_symbolic_policy == "degrade-structural":
-        names = ", ".join(item["pass_name"] for item in limited)
-        console.print(f"[yellow]Limited symbolic support detected for:[/yellow] {names}")
-        console.print("[yellow]Degrading validation mode from symbolic to structural.[/yellow]")
-        return "structural", {
-            "requested_mode": requested_mode,
-            "effective_mode": "structural",
-            "policy": limited_symbolic_policy,
-            "reason": "limited-symbolic-support",
-            "limited_passes": limited,
-        }
-
-    _warn_or_block_limited_symbolic(
-        mutations,
-        config,
-        seed=seed,
-        allow_limited_symbolic=allow_limited_symbolic,
-    )
-    return requested_mode, None
+    pass
 
 
 def _print_mutation_summary(result: dict[str, Any], output_path: Path | None = None) -> None:
@@ -536,43 +417,7 @@ def main_callback(
         r2morph functions input.exe
         r2morph morph input.exe -m nop
     """
-    if ctx.invoked_subcommand is not None:
-        return
-
-    input_file = input_opt
-    output_file = output_opt
-    positional = [arg for arg in ctx.args if not arg.startswith("-")]
-    if input_file is None and positional:
-        input_file = Path(positional[0])
-        if len(positional) > 1:
-            output_file = Path(positional[1])
-
-    if input_file is None:
-        console.print("[yellow]No input file provided.[/yellow]")
-        console.print("\nUsage:")
-        console.print("  Simple:   [cyan]r2morph input.exe [output.exe][/cyan]")
-        console.print("  Alternative:   [cyan]r2morph -i input.exe -o output.exe[/cyan]")
-        console.print("  Aggressive: [cyan]r2morph -i input.exe -o output.exe --aggressive[/cyan]")
-        console.print("\nRun [cyan]r2morph --help[/cyan] for more options")
-        raise typer.Exit(0)
-
-    try:
-        _run_simple_mode(
-            input_file,
-            output_file,
-            aggressive=aggressive,
-            force=force,
-            seed=seed,
-            verbose=verbose,
-            debug=debug,
-        )
-    except Exception as e:
-        console.print(f"[bold red]Error:[/bold red] {e}")
-        if verbose or debug:
-            import traceback
-
-            console.print(traceback.format_exc())
-        raise typer.Exit(1)
+    pass
 
 
 @app.command()
@@ -821,42 +666,7 @@ def morph(
         r2morph mutate binary.exe -m nop -m substitute --report report.json
         r2morph mutate binary.exe --cache  # Enable caching for faster repeated runs
     """
-    setup_logging("DEBUG" if verbose else "INFO")
-
-    if not output:
-        output = binary.parent / f"{binary.stem}_morphed{binary.suffix}"
-
-    if clear_cache:
-        from r2morph.core.analysis_cache import AnalysisCache
-
-        cleared = AnalysisCache().clear()
-        console.print(f"[cyan]Cleared {cleared} cache entries[/cyan]")
-
-    unknown = [m for m in mutations if m not in SUPPORTED_MUTATIONS | EXPERIMENTAL_MUTATIONS]
-    if unknown:
-        console.print(f"[bold red]Error:[/bold red] Unknown mutations: {', '.join(unknown)}")
-        raise typer.Exit(2)
-
-    _run_morph_workflow(
-        binary=binary,
-        output=output,
-        mutations=mutations,
-        aggressive=aggressive,
-        force=force,
-        validation_mode=validation_mode,
-        allow_limited_symbolic=allow_limited_symbolic,
-        limited_symbolic_policy=limited_symbolic_policy,
-        rollback_policy=rollback_policy,
-        report=report,
-        runtime_corpus=runtime_corpus,
-        runtime_compare_files=runtime_compare_files,
-        runtime_normalize_whitespace=runtime_normalize_whitespace,
-        runtime_timeout=runtime_timeout,
-        min_severity=min_severity,
-        require_pass_severity=require_pass_severity,
-        seed=seed,
-        report_format=report_format,
-    )
+    pass
 
 
 def _run_morph_workflow(
@@ -885,83 +695,7 @@ def _run_morph_workflow(
     Separated from the morph() CLI command to keep typer declarations
     apart from business logic.
     """
-    mode_str = "[bold red]AGGRESSIVE[/bold red]" if aggressive else "[bold green]STANDARD[/bold green]"
-    console.print(f"[bold green]Starting mutation pipeline ({mode_str})[/bold green]")
-    console.print(f"Input:  {binary}")
-    console.print(f"Output: {output}")
-    console.print(f"Mutations: {', '.join(mutations)}\n")
-
-    experimental = [m for m in mutations if is_experimental_mutation(m)]
-    _warn_experimental_mutations(experimental)
-    _warn_experimental_validation_mode(validation_mode)
-    _, min_severity_rank = _resolve_min_severity(min_severity)
-    config = _build_config(aggressive, force)
-    pass_severity_requirements = _resolve_pass_severity_requirements(
-        require_pass_severity,
-        alias_map=_mutation_pass_alias_map(config, seed=seed),
-    )
-    effective_validation_mode, validation_policy = _resolve_validation_mode(
-        requested_mode=validation_mode,
-        mutations=mutations,
-        config=config,
-        seed=seed,
-        allow_limited_symbolic=allow_limited_symbolic,
-        limited_symbolic_policy=limited_symbolic_policy,
-    )
-
-    with console.status("[bold green]Transforming binary..."):
-        try:
-            with MorphEngine(
-                config={
-                    "seed": seed,
-                    "requested_mutations": list(mutations),
-                    "experimental_mutations": experimental,
-                    "requested_validation_mode": validation_mode,
-                    "effective_validation_mode": effective_validation_mode,
-                    "validation_policy": validation_policy,
-                }
-            ) as engine:
-                engine.load_binary(binary).analyze()
-                _add_mutations(engine, mutations, config, seed=seed)
-
-                runtime_validator = None
-                if effective_validation_mode == "runtime":
-                    runtime_validator = _build_runtime_validator(
-                        timeout=runtime_timeout,
-                        corpus=runtime_corpus,
-                        compare_files=runtime_compare_files,
-                        normalize_whitespace=runtime_normalize_whitespace,
-                    )
-
-                report_ext = ".sarif" if report_format.lower() == "sarif" else ".report.json"
-                report_path = report or output.parent / f"{output.stem}{report_ext}"
-                result = engine.run(
-                    validation_mode=effective_validation_mode,
-                    rollback_policy=rollback_policy,
-                    checkpoint_per_mutation=rollback_policy == "skip-invalid-mutation",
-                    runtime_validator=runtime_validator,
-                    runtime_validate_per_pass=effective_validation_mode == "runtime",
-                    report_path=report_path,
-                    seed=seed,
-                )
-                engine.save(output)
-
-            _print_mutation_summary(result, output)
-            console.print(f"[cyan]Report:[/cyan] {report_path}")
-            report_payload = engine.build_report(result)
-            _evaluate_and_write_gates(
-                report_payload=report_payload,
-                report_path=report_path,
-                min_severity=min_severity,
-                min_severity_rank=min_severity_rank,
-                pass_severity_requirements=pass_severity_requirements,
-                report_format=report_format,
-            )
-        except typer.Exit:
-            raise
-        except Exception as e:
-            console.print(f"[bold red]Error:[/bold red] {e}")
-            raise typer.Exit(1)
+    pass
 
 
 def _evaluate_and_write_gates(
@@ -974,48 +708,7 @@ def _evaluate_and_write_gates(
     report_format: str = "json",
 ) -> None:
     """Evaluate severity gates, write report, and exit on failure."""
-    severity_rows = list(report_payload.get("summary", {}).get("symbolic_severity_by_pass", []))
-    min_severity_passed = _severity_threshold_met(severity_rows, min_severity_rank)
-    pass_requirements_ok = True
-    pass_requirement_failures: list[str] = []
-    if pass_severity_requirements:
-        pass_requirements_ok, pass_requirement_failures = _pass_severity_requirements_met(
-            severity_rows,
-            pass_severity_requirements,
-        )
-    report_payload = _attach_gate_evaluation(
-        report_payload,
-        min_severity=min_severity,
-        min_severity_passed=min_severity_passed,
-        require_pass_severity=pass_severity_requirements or [],
-        require_pass_severity_passed=pass_requirements_ok,
-        require_pass_severity_failures=pass_requirement_failures,
-    )
-    if report_path is not None:
-        if report_format.lower() == "sarif":
-            from r2morph.reporting.sarif_formatter import format_as_sarif
-
-            sarif = format_as_sarif(
-                report_payload.get("mutations", []),
-                report_payload.get("validation", {}).get("results", []),
-                report_payload.get("input", {}).get("path", ""),
-            )
-            report_path.write_text(sarif.to_json(), encoding="utf-8")
-        else:
-            report_path.write_text(json.dumps(report_payload, indent=2), encoding="utf-8")
-    if min_severity is not None and not min_severity_passed:
-        console.print(f"[bold yellow]Severity gate failed:[/bold yellow] min_severity={min_severity}")
-        raise typer.Exit(1)
-    if min_severity is not None:
-        console.print(f"[cyan]Severity gate passed:[/cyan] min_severity={min_severity}")
-    if pass_severity_requirements and not pass_requirements_ok:
-        console.print("[bold yellow]Pass severity gate failed:[/bold yellow] " + ", ".join(pass_requirement_failures))
-        raise typer.Exit(1)
-    if pass_severity_requirements:
-        console.print(
-            "[cyan]Pass severity gate passed:[/cyan] "
-            + ", ".join(f"{pn}<={s}" for pn, s, _ in pass_severity_requirements)
-        )
+    pass
 
 
 @app.command(name="mutate")
@@ -1090,27 +783,7 @@ def mutate(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ) -> None:
     """Alias for `morph` using the product-oriented command name."""
-    return morph(
-        binary=binary,
-        output=output,
-        mutations=mutations,
-        aggressive=aggressive,
-        force=force,
-        validation_mode=validation_mode,
-        allow_limited_symbolic=allow_limited_symbolic,
-        limited_symbolic_policy=limited_symbolic_policy,
-        rollback_policy=rollback_policy,
-        report=report,
-        runtime_corpus=runtime_corpus,
-        runtime_compare_files=runtime_compare_files,
-        runtime_normalize_whitespace=runtime_normalize_whitespace,
-        runtime_timeout=runtime_timeout,
-        min_severity=min_severity,
-        require_pass_severity=require_pass_severity,
-        seed=seed,
-        report_format=report_format,
-        verbose=verbose,
-    )
+    pass
 
 
 @app.command()
@@ -1169,11 +842,7 @@ def diff(
     """
     Show a lightweight diff summary between two binaries.
     """
-    DiffAnalyzer = _load_diff_analyzer()
-    analyzer = DiffAnalyzer()
-    result = analyzer.compare(original, mutated)
-    console.print_json(json.dumps(result.__dict__))
-    raise typer.Exit(0)
+    pass
 
 
 @app.command()
@@ -1392,32 +1061,7 @@ def cache(
         r2morph cache --clear          # Clear all cached data
         r2morph cache --clear --path /custom/cache  # Clear specific cache directory
     """
-    from r2morph.core.analysis_cache import AnalysisCache
-
-    cache_dir = path if path else None
-    cache_instance = AnalysisCache(cache_dir=cache_dir)
-
-    if stats:
-        statistics = cache_instance.get_stats()
-        console.print("[cyan]Cache Statistics:[/cyan]")
-        console.print(f"  Hits: {statistics.hits}")
-        console.print(f"  Misses: {statistics.misses}")
-        console.print(f"  Hit Rate: {statistics.hit_rate:.2%}")
-        console.print(f"  Entries: {statistics.entry_count}")
-        console.print(f"  Size: {statistics.total_size_bytes / (1024 * 1024):.2f} MB")
-        if statistics.oldest_entry:
-            console.print(f"  Oldest Entry: {statistics.oldest_entry.isoformat()}")
-        if statistics.newest_entry:
-            console.print(f"  Newest Entry: {statistics.newest_entry.isoformat()}")
-        return
-
-    if clear:
-        cleared = cache_instance.clear()
-        console.print(f"[green]Cleared {cleared} cache entries[/green]")
-        return
-
-    console.print("[yellow]Specify --clear or --stats[/yellow]")
-    raise typer.Exit(1)
+    pass
 
 
 def main() -> None:
